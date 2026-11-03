@@ -12,8 +12,6 @@
 @font-face{font-family:"IBM Plex Sans";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/ui/ibm-plex-sans-latin-600-normal.woff2) format("woff2")}
 @font-face{font-family:"IBM Plex Mono";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/ui/ibm-plex-mono-latin-400-normal.woff2) format("woff2")}
 @font-face{font-family:"IBM Plex Mono";font-style:normal;font-weight:500;font-display:swap;src:url(fonts/ui/ibm-plex-mono-latin-500-normal.woff2) format("woff2")}
-.tabbar{padding-bottom:calc(4px + env(safe-area-inset-bottom,0px))!important}
-header{padding-top:env(safe-area-inset-top,0px)}
 
 /* Layout: App-Hülle – feste Kopfleiste, scrollender Arbeitsbereich, feste Reiterleiste unten (Start/Zuletzt/Werkzeuge/Einstellungen); Editor und Scanner als Vollbild */
 :root{
@@ -59,7 +57,7 @@ button.on{background:var(--accent);color:var(--accent-ink)}
 button.ghost{background:transparent}
 .btn input{display:none}
 svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-main{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-block:14px 28px}
+main{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-block:14px calc(104px + env(safe-area-inset-bottom,0px))}
 .view[hidden]{display:none!important}
 .status{font-family:var(--f-mono);font-size:.75rem;color:var(--muted);display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
 .status .row{gap:6px}
@@ -95,13 +93,19 @@ h2.sec{font-family:var(--f-display);font-size:1rem;margin:22px 0 8px}
 .search input{flex:1;min-width:0;font:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
 .chips button{min-height:32px;padding:4px 10px;font-size:.8rem}
-.tabbar{flex:none;z-index:6;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding-top:0;padding-bottom:4px}
-.tab{position:relative;background:transparent;flex-direction:column;gap:2px;min-height:54px;padding:6px 0 2px;font-size:.66rem;font-weight:500;color:var(--muted);border-radius:0;justify-content:center;min-width:0}
-.tab svg{width:44px;height:28px;padding:2px 10px;border-radius:14px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.tab::before{content:"";position:absolute;top:0;left:22%;right:22%;height:3px;border-radius:0 0 3px 3px;background:transparent}
-.tab.on{color:var(--accent);font-weight:700;background:transparent}
-.tab.on svg{background:var(--chip);stroke-width:2}
-.tab.on::before{background:var(--accent)}
+.tabbar{position:fixed;z-index:6;left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));max-width:540px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);gap:2px;padding:5px;border-radius:999px;background:rgba(255,255,255,.82);background:color-mix(in srgb,var(--surface) 76%,transparent);-webkit-backdrop-filter:saturate(1.8) blur(20px);backdrop-filter:saturate(1.8) blur(20px);border:1px solid color-mix(in srgb,var(--line) 75%,transparent);box-shadow:0 10px 30px rgba(15,25,40,.16),0 2px 6px rgba(15,25,40,.10)}
+.tab{position:relative;background:transparent;flex-direction:column;gap:1px;min-height:52px;padding:5px 0 4px;font-size:.64rem;font-weight:500;color:var(--muted);border-radius:999px;justify-content:center;min-width:0;transition:background .2s}
+.tab svg{width:26px;height:26px;padding:0;border-radius:0;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tab::before{display:none}
+.tab.on{color:var(--accent);font-weight:700;background:color-mix(in srgb,var(--accent) 13%,transparent)}
+.tab.on svg{background:transparent;stroke-width:2}
+.panel.warnbox{background:color-mix(in srgb,#f0a020 13%,var(--surface));border:1px solid color-mix(in srgb,#f0a020 50%,transparent);gap:6px}
+.panel.warnbox span{font-size:.88rem;line-height:1.45}
+.hfprev{display:grid;justify-items:center;gap:6px;background:var(--chip);border-radius:10px;padding:12px}
+.hfprev canvas{width:230px;max-width:100%;height:auto;background:#fff;box-shadow:var(--shadow);border-radius:2px}
+#offSt{white-space:pre-line}
+header{padding-top:env(safe-area-inset-top,0px)}
+@media (pointer:coarse){.hrow{padding-top:16px}}
 .tools .needsel{display:none}
 .tools.selmode .needsel{display:inline-flex}
 .tools.selmode .nosel{display:none}
@@ -1791,7 +1795,8 @@ function renderAll() {
   const info = isSample ? "Beispiel – öffne deine eigene PDF" : (pages.length ? (S.name || "Dokument") + " · " + pages.length + (pages.length === 1 ? " Seite" : " Seiten") : "kein Dokument geöffnet");
   const startTitle = isSample ? "Beispiel" : pages.length ? (S.name || "Dokument") : "PDF Werkbank";
   const info2 = isSample ? "Öffne deine eigene PDF" : pages.length ? pages.length + (pages.length === 1 ? " Seite" : " Seiten") + " · automatisch gesichert" : "kein Dokument geöffnet";
-  $("hTitle").innerHTML = esc(tab === "start" ? startTitle : TAB_TITLES[tab]) + `<small id="docinfo">${esc(tab === "start" ? info2 : info)}</small>`;
+  const sub = tab === "start" ? info2 : tab === "settings" ? "PDF Werkbank · Version " + APP_VERSION.split(" ")[0] : info;
+  $("hTitle").innerHTML = esc(tab === "start" ? startTitle : TAB_TITLES[tab]) + `<small id="docinfo">${esc(sub)}</small>`;
   if (cur === "pages") renderGrid(); else if (cur === "files") renderLibrary(); else if (cur === "outline") renderOutline(); else if (cur === "search") renderSearchUI();
   else if (cur === "recent") renderRecent(); else if (cur === "tools") renderTools(); else if (cur === "settings") renderSettings();
 }
@@ -2040,7 +2045,7 @@ $("sAllText").onclick = async () => {
 function itemsFor(list) { return list.map(p => ({ src: p.src, idx: p.idx, rot: p.rot, ann: p.ann, ocr: p.ocr })); }
 function optsFor(list) {
   const ol = S.useOutline ? outline.map(o => ({ title: o.title, level: o.level, page: list.findIndex(p => p.id === o.pageId) })).filter(o => o.page >= 0) : [];
-  const hf = []; if (S.hf) { if (S.hf.ht) hf.push({ text: S.hf.ht, pos: "t", align: S.hf.ha || "c", skipFirst: S.hf.skip }); if (S.hf.ft) hf.push({ text: S.hf.ft, pos: "b", align: S.hf.fa || "c", skipFirst: S.hf.skip }); }
+  const hf = []; if (S.hf) { const sz = S.hf.sz || 9; if (S.hf.ht) hf.push({ text: S.hf.ht, pos: "t", align: S.hf.ha || "c", skipFirst: S.hf.skip, size: sz }); if (S.hf.ft) hf.push({ text: S.hf.ft, pos: "b", align: S.hf.fa || "r", skipFirst: S.hf.skip, size: sz }); }
   return { size: S.size, paper: S.paper || null, nums: S.nums, wm: S.wm, title: S.title, docName: S.name, compress: S.compress, outline: ol, flattenForms: !!S.flatForms, hf };
 }
 async function exportList(list, suffix, extra) {
@@ -2076,12 +2081,7 @@ function exportSheet() {
       <label class="f">Wasserzeichen<input type="text" id="xWm" value="${esc(S.wm)}" placeholder="z. B. ENTWURF"></label></div>
     <label class="f">Papierfarbe (auch in der Vorschau)</label>${paperPicker(S.paper, "xPaper")}
     <label class="chk"><input type="checkbox" id="xNums" ${S.nums ? "checked" : ""}> Seitenzahlen unten in der Mitte („3 / 12“)</label>
-    <details ${S.hf && (S.hf.ht || S.hf.ft) ? "open" : ""}><summary style="font-weight:600;cursor:pointer;padding:4px 0">Kopf- und Fußzeile</summary>
-      <p style="margin:6px 0">Platzhalter: {seite}, {seiten}, {datum}, {name}</p>
-      <div class="two"><label class="f">Kopfzeile<input type="text" id="xHt" value="${esc((S.hf || {}).ht || "")}" placeholder="z. B. {name}"></label><label class="f">Position<select id="xHa">${[["l", "Links"], ["c", "Mitte"], ["r", "Rechts"]].map(([k, l]) => `<option value="${k}"${((S.hf || {}).ha || "c") === k ? " selected" : ""}>${l}</option>`).join("")}</select></label></div>
-      <div class="two"><label class="f">Fußzeile<input type="text" id="xFt" value="${esc((S.hf || {}).ft || "")}" placeholder="z. B. Seite {seite} von {seiten}"></label><label class="f">Position<select id="xFa">${[["l", "Links"], ["c", "Mitte"], ["r", "Rechts"]].map(([k, l]) => `<option value="${k}"${((S.hf || {}).fa || "r") === k ? " selected" : ""}>${l}</option>`).join("")}</select></label></div>
-      <label class="chk"><input type="checkbox" id="xSkip" ${(S.hf || {}).skip ? "checked" : ""}> Nicht auf der ersten Seite (Deckblatt)</label>
-    </details>
+    <div class="row" style="align-items:center"><span class="hint" style="margin:0;flex:1">Kopf- und Fußzeile: ${hfActive() ? "aktiv" : "keine"}</span><button id="xHf">Kopf- und Fußzeile …</button></div>
     <label class="chk"><input type="checkbox" id="xOl" ${S.useOutline ? "checked" : ""}> Gliederung als Lesezeichen (${outline.length} Kapitel)</label>
     <label class="chk"><input type="checkbox" id="xCmp" ${S.compress ? "checked" : ""}> Verlustfrei komprimieren</label>
     <label class="chk"><input type="checkbox" id="xFlat" ${S.flatForms ? "checked" : ""}> Formulare fest einfügen (danach nicht mehr änderbar)</label>
@@ -2093,7 +2093,8 @@ function exportSheet() {
     <div class="acts"><button data-close="">Schließen</button></div>`, (box, close) => {
     const read = () => { S.name = box.querySelector("#xName").value; S.title = box.querySelector("#xTitle").value; S.size = box.querySelector("#xSize").value; S.wm = box.querySelector("#xWm").value;
       S.nums = box.querySelector("#xNums").checked; S.useOutline = box.querySelector("#xOl").checked; S.compress = box.querySelector("#xCmp").checked; S.flatForms = box.querySelector("#xFlat").checked;
-      S.hf = { ht: box.querySelector("#xHt").value.trim(), ha: box.querySelector("#xHa").value, ft: box.querySelector("#xFt").value.trim(), fa: box.querySelector("#xFa").value, skip: box.querySelector("#xSkip").checked }; dirty(); };
+      dirty(); };
+    box.querySelector("#xHf").onclick = () => { read(); close(); hfDialog(); };
     box.querySelectorAll("input,select").forEach(i => i.addEventListener("change", read));
     wirePaper(box, "xPaper", c => { S.paper = c; baseCache.clear(); dirty(); renderAll(); });
     box.querySelector("#xAll").onclick = () => { read(); close(); exportList(pages, ""); };
@@ -2838,7 +2839,7 @@ async function sample() {
 }
 async function openSample() {
   await switchAway(); newProject(); S.cal = { f: 25.4 / 72, unit: "mm", label: "1:1 (Originalgröße)" };
-  await sample(); tab = "start"; view = "pages"; renderAll(); toast("Beispiel geöffnet.");
+  await sample(); tab = "start"; view = "pages"; renderAll(); toast("Beispieldatei wiederhergestellt – sie liegt jetzt auch wieder unter Dateien.", 3500);
 }
 let storageOK = true;
 async function checkStorage() { try { const d = await idb(); if (!d) return false; await kvSet("__probe", Date.now()); return !!(await kvGet("__probe")); } catch (e) { return false; } }
@@ -3122,7 +3123,7 @@ function renderTools() {
       ${tile("flat", "flat", "Als Bild sichern", "Gewählte Seiten ohne versteckten Inhalt")}
       ${tile("crop", "cropi", "Zuschneiden", "Ränder entfernen, eine oder alle Seiten")}
       ${tile("nup", "nup", "Seiten pro Blatt", "2, 4, 6 oder 9 Seiten auf eine Seite")}
-      ${tile("hf", "hf", "Kopf- und Fußzeile", "Text, Datum und Seitenzahlen")}
+      ${tile("hf", "hf", "Kopf- und Fußzeile", hfActive() ? "Aktiv – auf allen Seiten" : "Text oder Seitenzahl auf allen Seiten")}
       ${tile("stamp", "stampi", "Stempel", "GEPRÜFT, ERLEDIGT … mit Datum")}
       ${tile("compare", "cmp", "Vergleichen", "Textunterschiede zweier PDFs")}
       ${tile("repair", "fix", "Reparieren", "Seiten neu aufbauen, wenn etwas nicht stimmt")}
@@ -3159,7 +3160,7 @@ function renderTools() {
     else if (a === "crop") { if (needDoc()) { tab = "start"; renderAll(); openEditor(0).then(() => { setTool("crop"); toast("Bereich aufziehen, der übrig bleiben soll.", 2500); }); } }
     else if (a === "stamp") { if (needDoc()) { tab = "start"; renderAll(); openEditor(0).then(() => setTool("stamp")); } }
     else if (a === "nup") { if (needDoc()) nupDialog(); }
-    else if (a === "hf") { if (needDoc()) { exportSheet(); setTimeout(() => { const d = document.querySelector("#sheetBox details"); if (d) { d.open = true; d.scrollIntoView({ block: "start" }); } }, 50); } }
+    else if (a === "hf") { if (needDoc()) hfDialog(); }
     else if (a === "compare") { if (needDoc()) compareDialog(); }
     else if (a === "repair") { if (needDoc()) repairDialog(); }
   };
@@ -3179,15 +3180,17 @@ async function renderSettings() {
   const V = $("v-settings"), theme = lsGet("pw_theme", "system"), reopen = lsGet("pw_reopen", true), h = hist();
   let est = ""; try { const e = await navigator.storage.estimate(); est = kb(e.usage || 0) + " belegt"; } catch (e) {}
   V.innerHTML = `<div class="list">
+    <div class="panel warnbox"><b>Kein Ersatz für eine Sicherung</b><span>Die App ist zum Bearbeiten da, nicht zum Aufbewahren. Dokumente liegen nur im Browser-Speicher dieses Geräts – der kann beim Löschen von Websitedaten, beim Entfernen des Home-Bildschirm-Symbols oder bei Speicherknappheit verloren gehen. Wichtige Dateien deshalb immer mit <b>Speichern</b> in der Dateien-App oder iCloud sichern.</span></div>
     ${iconPanel()}
+    ${updPanel()}
     <div class="panel"><b>Darstellung</b><div class="chipsel">${[["system", "Wie System"], ["light", "Hell"], ["dark", "Dunkel"]].map(([k, l]) => `<button data-theme="${k}" class="${theme === k ? "on" : ""}">${l}</button>`).join("")}</div>
       <label class="chk"><input type="checkbox" id="stReopen" ${reopen ? "checked" : ""}> Beim Start das zuletzt geöffnete Dokument laden</label></div>
     <div class="panel"><b>Eigene Schriften</b><div class="list" id="stFonts">${customFonts.length ? customFonts.map(f => `<div class="item"><div class="grow"><div class="t" style="font-family:'${f.family}',sans-serif">${esc(f.name)}</div></div><button data-delfont="${esc(f.key)}" class="danger" aria-label="Entfernen">✕</button></div>`).join("") : `<p class="hint" style="margin:0">Keine. TTF- oder OTF-Dateien lassen sich hinzufügen.</p>`}</div><button id="stAddFont">+ Schrift hinzufügen</button></div>
     <div class="panel"><b>Unterschriften</b><div class="row" id="stSigs" style="flex-wrap:wrap">${sigs.map((s, k) => `<span class="row" style="gap:4px"><canvas width="180" height="80" style="width:90px;height:40px;background:#fff;border-radius:6px" data-sig="${k}"></canvas><button data-delsig="${k}" class="danger" aria-label="Löschen">✕</button></span>`).join("") || `<p class="hint" style="margin:0">Noch keine gespeichert.</p>`}</div><button id="stAddSig">+ Neue Unterschrift</button></div>
     <div class="panel"><b>Messen</b><span class="hint" style="margin:0">Aktuell: ${esc(S.cal.label)} · ${esc(S.cal.unit)}</span><button id="stCal">Auf Originalgröße (mm) zurücksetzen</button></div>
     <div class="panel"><b>Suchverlauf</b><span class="hint" style="margin:0">${h.length} gespeicherte Begriffe</span><button id="stHist" ${h.length ? "" : "disabled"}>Verlauf löschen</button></div>
-    <div class="panel"><b>Speicher auf diesem Gerät</b><span class="hint" style="margin:0">${est || "Größe unbekannt"}. Dokumente, Schriften und Unterschriften bleiben nur in diesem Browser.</span><button id="stWipe" class="danger">Alle Dokumente löschen</button></div>
-    <div class="panel"><b>Anleitung</b><span class="hint" style="margin:0">Alle Funktionen und wie sie arbeiten. Antippen zum Aufklappen.</span>${guideHtml()}<button id="stHelp">Kurzanleitung als Überblick</button><button id="stSample">Beispiel öffnen (zeigt alle Werkzeuge)</button></div>
+    <div class="panel"><b>Speicher auf diesem Gerät</b><span class="hint" style="margin:0">${est || "Größe unbekannt"}. Dokumente, Schriften und Unterschriften bleiben nur in diesem Browser.</span><button id="stSample">Beispieldatei wiederherstellen</button><button id="stWipe" class="danger">Alle Dokumente löschen</button></div>
+    <div class="panel"><b>Anleitung</b><span class="hint" style="margin:0">Alle Funktionen und wie sie arbeiten. Antippen zum Aufklappen.</span>${guideHtml()}<button id="stHelp">Kurzanleitung als Überblick</button></div>
     <div class="panel about"><b>Über</b>
       <div style="display:flex;gap:14px;align-items:center"><img src="${ICON_PREV[curIcon()] || ""}" alt="" style="width:56px;height:56px;flex:none"><p class="love">Mit <span aria-label="Herz">❤️</span> gemacht von Kerem</p></div>
       <dl class="infolist"><dt>App</dt><dd>PDF Werkbank</dd><dt>Version</dt><dd>${APP_VERSION}</dd><dt>Webseite</dt><dd><a href="https://mrkero.github.io/PDF-Werkbank/" target="_blank" rel="noopener noreferrer">mrkero.github.io/PDF-Werkbank</a></dd><dt>Quellcode</dt><dd><a href="https://github.com/mrkero/PDF-Werkbank" target="_blank" rel="noopener noreferrer">github.com/mrkero/PDF-Werkbank</a></dd><dt>Läuft</dt><dd>im Browser, ohne Installation, ohne Konto</dd><dt>Speicher</dt><dd>${est || "unbekannt"}</dd></dl>
@@ -3209,7 +3212,7 @@ async function renderSettings() {
     </div>
     <div class="panel about"><b>Gut zu wissen</b>
       <ul>
-        <li>Am besten in Safari öffnen und über „Teilen → Zum Home-Bildschirm“ wie eine App ablegen.</li>
+        ${IS_PAGES && !isStandalone() ? "<li>Am besten in Safari öffnen und über „Teilen → Zum Home-Bildschirm“ wie eine App ablegen.</li>" : ""}
         <li>Wichtige Dokumente zusätzlich mit „Speichern“ in der Dateien-App sichern.</li>
         <li>Texterkennung kann sich irren – erkannten Text bei wichtigen Werten kontrollieren.</li>
         <li>Unterschriften hier sind einfache Bild-Unterschriften, keine qualifizierte elektronische Signatur.</li>
@@ -3230,7 +3233,10 @@ async function renderSettings() {
     else if (b.id === "stHist") { lsSet("pw_hist", []); renderSettings(); }
     else if (b.id === "stHelp") helpSheet();
     else if (b.id === "stSample") openSample();
-    else if (b.id === "offGo") { lsSet("pw_off_choice", "yes"); warmOffline(); }
+    else if (b.id === "offGo-bb" || b.id === "offGo-fonts") { const g = b.id.slice(6), ch = lsGet("pw_off_choice", ""), want = new Set(ch === "yes" ? ["bb", "fonts"] : ch === "bb" || ch === "fonts" ? [ch] : []); want.add(g);
+      lsSet("pw_off_choice", want.size === 2 ? "yes" : g); warmOffline([g]); }
+    else if (b.id === "updCheck") updCheck();
+    else if (b.id === "updApply") updApply();
     else if (b.id === "stWipe") {
       const ok = await openSheet(`<h2>Alle Dokumente löschen?</h2><p>Alle unter „Zuletzt“ gespeicherten Dokumente werden vom Gerät entfernt. Bereits gespeicherte PDF-Dateien bleiben unberührt.</p><div class="acts"><button data-close="">Abbrechen</button><button class="primary" data-close="ja">Alles löschen</button></div>`);
       if (ok !== "ja") return; clearTimeout(saveT);
@@ -3238,7 +3244,8 @@ async function renderSettings() {
       await kvSet("recent", []); clearAll(); lsSet("pw_last", null); renderSettings(); toast("Gelöscht.");
     }
   };
-  V.onchange = e => { if (e.target.id === "stReopen") lsSet("pw_reopen", e.target.checked); };
+  V.onchange = async e => { if (e.target.id === "stReopen") lsSet("pw_reopen", e.target.checked);
+    if (e.target.id === "stAuto") { lsSet("pw_autoupd", e.target.checked); await swMsg({ t: "auto", v: e.target.checked }); const y = $("mainEl").scrollTop; await renderSettings(); $("mainEl").scrollTop = y; toast(e.target.checked ? "Automatische Aktualisierung an." : "Automatische Aktualisierung aus – „Nach Updates suchen“ prüft von Hand.", 3000); } };
 }
 
 /* ======================= Sonstiges ======================= */
@@ -3319,12 +3326,66 @@ async function formSheet() {
 }
 $("bForm").onclick = formSheet;
 
+/* ======================= Kopf- und Fußzeile ======================= */
+function hfActive() { return !!(S.hf && (S.hf.ht || S.hf.ft)) || !!S.nums; }
+function hfFill(t, i, N) { const d = new Date(), ds = String(d.getDate()).padStart(2, "0") + "." + String(d.getMonth() + 1).padStart(2, "0") + "." + d.getFullYear();
+  return String(t).replace(/\{seite\}/gi, i + 1).replace(/\{seiten\}/gi, N).replace(/\{datum\}/gi, ds).replace(/\{name\}/gi, S.title || S.name || ""); }
+// zeichnet wie beim Speichern (Rand 12 mm, Helvetica, grau) in ein Vorschaubild
+function drawHF(ctx, vp, i, N, hf) {
+  hf = hf || Object.assign({}, S.hf || {}, { nums: !!S.nums }); const sc = vp.scale, vw = vp.width / sc, vh = vp.height / sc, m = 12 * 72 / 25.4, fs = hf.sz || 9;
+  ctx.save(); ctx.fillStyle = "#4d4d4d"; ctx.textBaseline = "alphabetic"; ctx.font = (fs * sc) + "px Helvetica, Arial, sans-serif";
+  const put = (txt, pos, al) => { if (!txt || (hf.skip && i === 0)) return; const t = hfFill(txt, i, N), tw = ctx.measureText(t).width / sc;
+    const x = al === "l" ? m : al === "r" ? vw - m - tw : (vw - tw) / 2, yUp = pos === "t" ? vh - m * 0.85 - fs * 0.75 : m * 0.85;
+    ctx.fillText(t, x * sc, (vh - yUp) * sc); };
+  put(hf.ht, "t", hf.ha || "c"); put(hf.ft, "b", hf.fa || "r");
+  if (hf.nums) { ctx.font = (10 * sc) + "px Helvetica, Arial, sans-serif"; const t = (i + 1) + " / " + N, tw = ctx.measureText(t).width; ctx.fillStyle = "#595959"; ctx.fillText(t, vp.width / 2 - tw / 2, vp.height - 20 * sc); }
+  ctx.restore();
+}
+async function hfDialog() {
+  const h0 = Object.assign({ ht: "", ha: "c", ft: "", fa: "r", sz: 9, skip: false }, S.hf || {}); const st = { ...h0, nums: !!S.nums };
+  const segs = (id, v) => `<div class="chipsel" id="${id}">${[["l", "Links"], ["c", "Mitte"], ["r", "Rechts"]].map(([k, l]) => `<button data-al="${k}" class="${v === k ? "on" : ""}">${l}</button>`).join("")}</div>`;
+  const ins = [["{seite}", "Seitenzahl"], ["{seiten}", "Seitenanzahl"], ["{datum}", "Datum"], ["{name}", "Dateiname"]];
+  const ok = await openSheet(`<h2>Kopf- und Fußzeile</h2>
+    <p class="hint" style="margin:0">Erscheint auf allen Seiten – in der Vorschau sofort und beim Speichern fest in der PDF.</p>
+    <div class="chips" style="margin:6px 0 2px"><button data-pre="nr">Seitenzahl unten rechts</button><button data-pre="nrc">„Seite 1 von 9“ unten Mitte</button><button data-pre="name">Dateiname oben</button><button data-pre="date">Datum oben rechts</button></div>
+    <label class="f">Kopfzeile<input type="text" id="hHt" value="${esc(h0.ht)}" placeholder="z. B. Versuchsprotokoll – {name}"></label>${segs("hHa", h0.ha)}
+    <label class="f">Fußzeile<input type="text" id="hFt" value="${esc(h0.ft)}" placeholder="z. B. Seite {seite} von {seiten}"></label>${segs("hFa", h0.fa)}
+    <span class="hint" style="margin:0">Einfügen an der Cursorstelle:</span><div class="chips" id="hIns" style="margin:2px 0">${ins.map(([k, l]) => `<button data-ins="${k}">${l}</button>`).join("")}</div>
+    <div class="two"><label class="f">Schriftgröße<select id="hSz">${[7, 8, 9, 10, 11, 12, 14].map(n => `<option${n === h0.sz ? " selected" : ""}>${n}</option>`).join("")}</select></label><label class="chk" style="align-self:end"><input type="checkbox" id="hSkip" ${h0.skip ? "checked" : ""}> Nicht auf Seite 1</label></div>
+    <label class="chk"><input type="checkbox" id="hNums" ${st.nums ? "checked" : ""}> Zusätzlich einfache Seitenzahl unten Mitte („3 / 12“)</label>
+    <div class="hfprev"><canvas id="hPrev"></canvas><span class="hint" id="hPrevT" style="margin:0"></span></div>
+    <div class="acts"><button data-close="off" class="danger">Entfernen</button><button data-close="">Abbrechen</button><button class="primary" data-close="ok">Übernehmen</button></div>`, (box) => {
+    let last = box.querySelector("#hFt"); const cv = box.querySelector("#hPrev"), pi = () => (st.skip && pages.length > 1 ? 1 : 0);
+    let baseImg = null, baseVp = null;
+    const draw = () => { if (!baseImg) return; const ctx = cv.getContext("2d"); ctx.drawImage(baseImg, 0, 0, cv.width, cv.height); drawHF(ctx, baseVp, pi(), pages.length, st); box.querySelector("#hPrevT").textContent = "Vorschau: Seite " + (pi() + 1) + " von " + pages.length; };
+    const load = async () => { const p = pages[pi()]; const r = await renderBase(p, 340); baseImg = await loadImg(r.url); baseVp = r.vp; cv.width = r.w; cv.height = r.h; draw(); };
+    const sync = () => { st.ht = box.querySelector("#hHt").value; st.ft = box.querySelector("#hFt").value; st.sz = +box.querySelector("#hSz").value; const sk = box.querySelector("#hSkip").checked, ch = sk !== st.skip; st.skip = sk; st.nums = box.querySelector("#hNums").checked; if (ch) load(); else draw(); };
+    box.querySelectorAll("input,select").forEach(i => { i.addEventListener("input", sync); i.addEventListener("change", sync); });
+    ["hHt", "hFt"].forEach(id => box.querySelector("#" + id).addEventListener("focus", e => last = e.target));
+    box.querySelector("#hIns").addEventListener("pointerdown", e => e.preventDefault());
+    box.addEventListener("click", e => {
+      const b = e.target.closest("button"); if (!b) return;
+      if (b.dataset.ins) { const i = last, a = i.selectionStart ?? i.value.length, z = i.selectionEnd ?? a; i.value = i.value.slice(0, a) + b.dataset.ins + i.value.slice(z); i.focus(); i.setSelectionRange(a + b.dataset.ins.length, a + b.dataset.ins.length); sync(); }
+      else if (b.dataset.al) { const g = b.parentNode; g.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); if (g.id === "hHa") st.ha = b.dataset.al; else st.fa = b.dataset.al; draw(); }
+      else if (b.dataset.pre) { const P = { nr: ["ft", "fa", "Seite {seite} von {seiten}", "r"], nrc: ["ft", "fa", "Seite {seite} von {seiten}", "c"], name: ["ht", "ha", "{name}", "c"], date: ["ht", "ha", "{datum}", "r"] }[b.dataset.pre];
+        st[P[0]] = P[2]; st[P[1]] = P[3]; box.querySelector(P[0] === "ht" ? "#hHt" : "#hFt").value = P[2];
+        const g = box.querySelector(P[1] === "ha" ? "#hHa" : "#hFa"); g.querySelectorAll("button").forEach(x => x.classList.toggle("on", x.dataset.al === P[3])); draw(); }
+    });
+    load();
+    box._st = st;
+  });
+  if (ok === "ok") { S.hf = { ht: st.ht.trim(), ha: st.ha, ft: st.ft.trim(), fa: st.fa, sz: st.sz, skip: st.skip }; S.nums = st.nums; dirty(); renderAll(); toast(hfActive() ? "Kopf- und Fußzeile auf allen Seiten." : "Keine Kopf- und Fußzeile."); }
+  else if (ok === "off") { S.hf = null; S.nums = false; dirty(); renderAll(); toast("Kopf- und Fußzeile entfernt."); }
+}
+
 /* ======================= Seitenbild mit Anmerkungen ======================= */
 async function composePage(p, w) {
   const r = await renderBase(p, w);
-  if (!p.ann.length && !hasFormVals(p)) return { url: r.url, own: false, r };
+  const hfOn = hfActive();
+  if (!p.ann.length && !hasFormVals(p) && !hfOn) return { url: r.url, own: false, r };
   const base = await loadImg(r.url); const c = document.createElement("canvas"); c.width = r.w; c.height = r.h;
   const ctx = c.getContext("2d"); ctx.drawImage(base, 0, 0); drawFields(ctx, r.vp, p, false); drawAnns(ctx, r.vp, p.ann, r.R);
+  if (hfOn) drawHF(ctx, r.vp, pages.indexOf(p), pages.length);
   const b = await new Promise(res => c.toBlob(res, "image/jpeg", 0.85)); c.width = c.height = 0;
   return { url: URL.createObjectURL(b), own: true, r };
 }
@@ -3623,6 +3684,49 @@ async function mergeDocs(ids) {
   } catch (e) { console.error(e); busy(false); toast("Zusammenfügen fehlgeschlagen."); }
 } $("lScan").onclick = () => openScanner(); $("lNew").onclick = () => newSheet(); $("lAppend").onclick = () => appendIn.click();
 
+/* ======================= Aktualisierung (nur GitHub-Pages-Fassung) ======================= */
+let updInfo = null;
+function appV() { return APP_VERSION.split(" ")[0]; }
+async function swMsg(m) {
+  if (!("serviceWorker" in navigator)) return null;
+  try { const reg = await Promise.race([navigator.serviceWorker.ready, new Promise(r => setTimeout(() => r(null), 3000))]); const sw = reg && (reg.active || navigator.serviceWorker.controller); if (!sw) return null;
+    return await new Promise(res => { const ch = new MessageChannel(); ch.port1.onmessage = e => res(e.data); sw.postMessage(m, [ch.port2]); setTimeout(() => res(null), 4000); }); } catch (e) { return null; }
+}
+const vOf = v => String(v || "").replace(/^pdf-werkbank-/, "");
+function updPanel() {
+  if (!IS_PAGES) return `<div class="panel"><b>Aktualisierung</b><span class="hint" style="margin:0">Diese Fassung wird über Claude bereitgestellt und ist immer auf dem neuesten veröffentlichten Stand (Version ${appV()}).</span></div>`;
+  const auto = lsGet("pw_autoupd", true);
+  return `<div class="panel"><b>Aktualisierung</b>
+    <label class="chk"><input type="checkbox" id="stAuto" ${auto ? "checked" : ""}> Automatisch aktualisieren</label>
+    <span class="hint" style="margin:0">${auto ? "Neue Versionen werden im Hintergrund geladen und beim nächsten Start benutzt. Danach erscheint kurz eine Meldung." : "Die App bleibt auf ihrer Version, bis du selbst aktualisierst. Neue Versionen werden nur gemeldet."}</span>
+    <span class="hint" id="updSt" style="margin:0">Installiert: Version ${appV()}</span>
+    <div class="row"><button id="updCheck">Nach Updates suchen</button><button id="updApply" class="primary" hidden>Jetzt aktualisieren</button></div></div>`;
+}
+function updShow(t, canApply) { const el = document.getElementById("updSt"); if (el) el.textContent = t; const b = document.getElementById("updApply"); if (b) b.hidden = !canApply; }
+async function updCheck() {
+  if (!("serviceWorker" in navigator) || !navigator.serviceWorker.controller) { updShow("Prüfen geht erst, wenn die App einmal vollständig geladen wurde (über https).", false); return; }
+  updShow("Suche nach Updates …", false);
+  try {
+    const reg = await navigator.serviceWorker.ready; await reg.update();
+    const w = reg.installing || reg.waiting;
+    if (w && w.state !== "activated") await new Promise(r => { const t = setTimeout(r, 20000); w.addEventListener("statechange", () => { if (w.state === "activated" || w.state === "redundant") { clearTimeout(t); r(); } }); });
+  } catch (e) { updShow(navigator.onLine === false ? "Keine Internetverbindung – Prüfen geht nur online." : "Prüfen fehlgeschlagen: " + (e.message || e), false); return; }
+  const st = await swMsg({ t: "status" }); if (!st) { updShow("Keine Antwort vom Offline-Speicher – bitte App neu öffnen.", false); return; }
+  updInfo = st; const cur = vOf(st.cur), lat = vOf(st.latest);
+  if (cur !== lat) updShow("Neue Version " + lat + " verfügbar (installiert: " + cur + ").", true);
+  else if (cur !== appV()) updShow("Version " + cur + " ist geladen – zum Benutzen die App neu öffnen.", true);
+  else updShow("✓ Du hast die neueste Version (" + appV() + ").", false);
+}
+async function updApply() { updShow("Wird aktualisiert …", false); await swMsg({ t: "apply" }); location.reload(); }
+function updStartup() {
+  if (!IS_PAGES) return;
+  const seen = lsGet("pw_seen_ver", ""); if (seen && seen !== appV()) setTimeout(() => toast("Aktualisiert auf Version " + appV() + ".", 3500), 1200); lsSet("pw_seen_ver", appV());
+  swMsg({ t: "auto", v: lsGet("pw_autoupd", true) });
+  if ("serviceWorker" in navigator) navigator.serviceWorker.addEventListener("controllerchange", async () => {
+    const st = await swMsg({ t: "status" }); if (st && vOf(st.cur) !== appV()) toast("Version " + vOf(st.cur) + " ist bereit – wird beim nächsten Start benutzt.", 4000);
+  });
+}
+function isStandalone() { try { return !!navigator.standalone || matchMedia("(display-mode: standalone)").matches || matchMedia("(display-mode: fullscreen)").matches; } catch (e) { return false; } }
 function installHint() {
   lsSet("pw_install_hint", true);
   openSheet(`<h2>Als App aufs iPhone</h2><p>Für Vollbild, eigenes Symbol und Offline-Nutzung:</p>
@@ -3634,61 +3738,75 @@ function installHint() {
 /*NET*/const NET_INFO = `<p class="hint" style="margin:0">Diese Fassung fragt <b>nur ihre eigene Adresse</b> an (z. B. dein GitHub-Pages-Repository) – keine fremden Anbieter. Nach dem ersten Laden läuft sie komplett offline.</p>
   <dl class="infolist">
     <dt>Beim ersten Öffnen</dt><dd>App, Programmbausteine, Oberflächenschriften, Symbole</dd>
-    <dt>Offline-Vorrat</dt><dd>nur wenn du zustimmst: alle Schriften und die Texterkennung (ca. 30 MB) auf einmal. Ab dann braucht keine Funktion mehr das Internet.</dd>
+    <dt>Offline-Vorrat</dt><dd>nur wenn du zustimmst: Bausteine (Texterkennung, Word-Import, ca. 21 MB) und/oder Schriften (ca. 9 MB). Ab dann braucht die jeweilige Funktion kein Internet mehr.</dd>
     <dt>Ohne Vorrat</dt><dd>eine Schrift oder die Texterkennung wird erst beim ersten Gebrauch geladen</dd>
-    <dt>Später</dt><dd>beim Start eine kurze Prüfung, ob es eine neue Version der App gibt – ohne Daten von dir</dd>
+    <dt>Updates</dt><dd>beim Start prüft der Browser kurz, ob es eine neue Version gibt – ohne Daten von dir. Abschaltbar unter „Aktualisierung“.</dd>
     <dt>Speichern</dt><dd>Die Datei entsteht auf dem Gerät und geht direkt an „Teilen“ bzw. die Dateien-App – kein Upload.</dd>
     <dt>Links</dt><dd>fremde Seiten öffnen sich nur, wenn du einen Link antippst</dd>
   </dl>
-  <p class="hint" id="offSt" style="margin:0"></p><button id="offGo" hidden>Offline-Vorrat jetzt laden (ca. 30 MB)</button>
+  <p class="hint" id="offSt" style="margin:0"></p><div class="row" style="flex-wrap:wrap"><button id="offGo-bb" hidden>Bausteine laden (ca. 21 MB)</button><button id="offGo-fonts" hidden>Schriften laden (ca. 9 MB)</button></div>
   <p class="hint" style="margin:0">Was der Webhoster (z. B. GitHub) dabei sieht: wie bei jeder Webseite deine IP-Adresse, die Uhrzeit und den Gerätetyp – nie den Inhalt deiner Dokumente.</p>`;/*/NET*/
-const APP_VERSION = "2.5 · 03.11.2026";
+const APP_VERSION = "2.6 · 03.11.2026";
 /* Offline-Vorrat (nur GitHub-Pages-Fassung): alle Schriften und die Texterkennung gleich nach dem ersten Öffnen speichern */
-const OFFLINE = /*OFFLINE*/{"v": "pdf-werkbank-2.5", "files": ["fonts/Caladea-Bold.ttf", "fonts/Caladea-BoldItalic.ttf", "fonts/Caladea-Italic.ttf", "fonts/Caladea-Regular.ttf", "fonts/Carlito-Bold.ttf", "fonts/Carlito-BoldItalic.ttf", "fonts/Carlito-Italic.ttf", "fonts/Carlito-Regular.ttf", "fonts/Caveat-Bold.ttf", "fonts/Caveat-Regular.ttf", "fonts/DejaVuSans-Bold.ttf", "fonts/DejaVuSans-BoldItalic.ttf", "fonts/DejaVuSans-Italic.ttf", "fonts/DejaVuSans-Regular.ttf", "fonts/EBGaramond-Bold.ttf", "fonts/EBGaramond-BoldItalic.ttf", "fonts/EBGaramond-Italic.ttf", "fonts/EBGaramond-Regular.ttf", "fonts/Inter-Bold.ttf", "fonts/Inter-BoldItalic.ttf", "fonts/Inter-Italic.ttf", "fonts/Inter-Regular.ttf", "fonts/LatinModern-Bold.ttf", "fonts/LatinModern-BoldItalic.ttf", "fonts/LatinModern-Italic.ttf", "fonts/LatinModern-Regular.ttf", "fonts/Lato-Bold.ttf", "fonts/Lato-BoldItalic.ttf", "fonts/Lato-Italic.ttf", "fonts/Lato-Regular.ttf", "fonts/LiberationMono-Bold.ttf", "fonts/LiberationMono-BoldItalic.ttf", "fonts/LiberationMono-Italic.ttf", "fonts/LiberationMono-Regular.ttf", "fonts/LiberationSans-Bold.ttf", "fonts/LiberationSans-BoldItalic.ttf", "fonts/LiberationSans-Italic.ttf", "fonts/LiberationSans-Regular.ttf", "fonts/LiberationSerif-Bold.ttf", "fonts/LiberationSerif-BoldItalic.ttf", "fonts/LiberationSerif-Italic.ttf", "fonts/LiberationSerif-Regular.ttf", "fonts/Merriweather-Bold.ttf", "fonts/Merriweather-BoldItalic.ttf", "fonts/Merriweather-Italic.ttf", "fonts/Merriweather-Regular.ttf", "fonts/Montserrat-Bold.ttf", "fonts/Montserrat-BoldItalic.ttf", "fonts/Montserrat-Italic.ttf", "fonts/Montserrat-Regular.ttf", "fonts/NotoSans-Bold.ttf", "fonts/NotoSans-BoldItalic.ttf", "fonts/NotoSans-Italic.ttf", "fonts/NotoSans-Regular.ttf", "fonts/NotoSerif-Bold.ttf", "fonts/NotoSerif-BoldItalic.ttf", "fonts/NotoSerif-Italic.ttf", "fonts/NotoSerif-Regular.ttf", "fonts/OpenSans-Bold.ttf", "fonts/OpenSans-BoldItalic.ttf", "fonts/OpenSans-Italic.ttf", "fonts/OpenSans-Regular.ttf", "fonts/Poppins-Bold.ttf", "fonts/Poppins-BoldItalic.ttf", "fonts/Poppins-Italic.ttf", "fonts/Poppins-Regular.ttf", "fonts/Roboto-Bold.ttf", "fonts/Roboto-BoldItalic.ttf", "fonts/Roboto-Italic.ttf", "fonts/Roboto-Regular.ttf", "fonts/SourceSans3-Bold.ttf", "fonts/SourceSans3-BoldItalic.ttf", "fonts/SourceSans3-Italic.ttf", "fonts/SourceSans3-Regular.ttf", "lib/mammoth.browser.min.js", "lib/tesseract.min.js", "ocr/lang/deu.traineddata.b64.txt", "ocr/lang/eng.traineddata.b64.txt", "ocr/tesseract-core-lstm.wasm.js", "ocr/tesseract-core-relaxedsimd-lstm.wasm.js", "ocr/tesseract-core-simd-lstm.wasm.js", "ocr/worker-wrap.js", "ocr/worker.min.js"]}/*/OFFLINE*/;
-let offState = null;
-function offText() { if (!OFFLINE) return ""; if (!("caches" in window)) return "Offline-Speicher wird von diesem Browser nicht unterstützt."; if (!offState) return "Offline-Vorrat wird geprüft …"; return offState.done >= offState.all ? "✓ Offline-Vorrat vollständig: alle " + offState.all + " Dateien (Schriften, Texterkennung) liegen auf dem Gerät." : offLoading ? "Offline-Vorrat wird geladen: " + offState.done + " von " + offState.all + " Dateien …" : "Offline-Vorrat: " + offState.done + " von " + offState.all + " Dateien auf dem Gerät. Fehlende Schriften und die Texterkennung werden erst bei Bedarf geladen."; }
-function updOff() { const el = document.getElementById("offSt"); if (el) el.textContent = offText(); const b = document.getElementById("offGo"); if (b) b.hidden = !offState || offLoading || offState.done >= offState.all; }
-let offLoading = false;
+const OFFLINE = /*OFFLINE*/{"v": "pw-assets-1", "files": ["fonts/Caladea-Bold.ttf", "fonts/Caladea-BoldItalic.ttf", "fonts/Caladea-Italic.ttf", "fonts/Caladea-Regular.ttf", "fonts/Carlito-Bold.ttf", "fonts/Carlito-BoldItalic.ttf", "fonts/Carlito-Italic.ttf", "fonts/Carlito-Regular.ttf", "fonts/Caveat-Bold.ttf", "fonts/Caveat-Regular.ttf", "fonts/DejaVuSans-Bold.ttf", "fonts/DejaVuSans-BoldItalic.ttf", "fonts/DejaVuSans-Italic.ttf", "fonts/DejaVuSans-Regular.ttf", "fonts/EBGaramond-Bold.ttf", "fonts/EBGaramond-BoldItalic.ttf", "fonts/EBGaramond-Italic.ttf", "fonts/EBGaramond-Regular.ttf", "fonts/Inter-Bold.ttf", "fonts/Inter-BoldItalic.ttf", "fonts/Inter-Italic.ttf", "fonts/Inter-Regular.ttf", "fonts/LatinModern-Bold.ttf", "fonts/LatinModern-BoldItalic.ttf", "fonts/LatinModern-Italic.ttf", "fonts/LatinModern-Regular.ttf", "fonts/Lato-Bold.ttf", "fonts/Lato-BoldItalic.ttf", "fonts/Lato-Italic.ttf", "fonts/Lato-Regular.ttf", "fonts/LiberationMono-Bold.ttf", "fonts/LiberationMono-BoldItalic.ttf", "fonts/LiberationMono-Italic.ttf", "fonts/LiberationMono-Regular.ttf", "fonts/LiberationSans-Bold.ttf", "fonts/LiberationSans-BoldItalic.ttf", "fonts/LiberationSans-Italic.ttf", "fonts/LiberationSans-Regular.ttf", "fonts/LiberationSerif-Bold.ttf", "fonts/LiberationSerif-BoldItalic.ttf", "fonts/LiberationSerif-Italic.ttf", "fonts/LiberationSerif-Regular.ttf", "fonts/Merriweather-Bold.ttf", "fonts/Merriweather-BoldItalic.ttf", "fonts/Merriweather-Italic.ttf", "fonts/Merriweather-Regular.ttf", "fonts/Montserrat-Bold.ttf", "fonts/Montserrat-BoldItalic.ttf", "fonts/Montserrat-Italic.ttf", "fonts/Montserrat-Regular.ttf", "fonts/NotoSans-Bold.ttf", "fonts/NotoSans-BoldItalic.ttf", "fonts/NotoSans-Italic.ttf", "fonts/NotoSans-Regular.ttf", "fonts/NotoSerif-Bold.ttf", "fonts/NotoSerif-BoldItalic.ttf", "fonts/NotoSerif-Italic.ttf", "fonts/NotoSerif-Regular.ttf", "fonts/OpenSans-Bold.ttf", "fonts/OpenSans-BoldItalic.ttf", "fonts/OpenSans-Italic.ttf", "fonts/OpenSans-Regular.ttf", "fonts/Poppins-Bold.ttf", "fonts/Poppins-BoldItalic.ttf", "fonts/Poppins-Italic.ttf", "fonts/Poppins-Regular.ttf", "fonts/Roboto-Bold.ttf", "fonts/Roboto-BoldItalic.ttf", "fonts/Roboto-Italic.ttf", "fonts/Roboto-Regular.ttf", "fonts/SourceSans3-Bold.ttf", "fonts/SourceSans3-BoldItalic.ttf", "fonts/SourceSans3-Italic.ttf", "fonts/SourceSans3-Regular.ttf", "lib/mammoth.browser.min.js", "lib/tesseract.min.js", "ocr/lang/deu.traineddata.b64.txt", "ocr/lang/eng.traineddata.b64.txt", "ocr/tesseract-core-lstm.wasm.js", "ocr/tesseract-core-relaxedsimd-lstm.wasm.js", "ocr/tesseract-core-simd-lstm.wasm.js", "ocr/worker-wrap.js", "ocr/worker.min.js"]}/*/OFFLINE*/;
+// Gruppen: "bb" = Bausteine (Texterkennung, Word-Import), "fonts" = Schriften
+const offGroup = f => f.startsWith("fonts/") ? "fonts" : "bb";
+const OFF_NAMES = { bb: "Bausteine (Texterkennung, Word-Import)", fonts: "Schriften" };
+let offState = null, offLoading = null;
+function offText() {
+  if (!OFFLINE) return ""; if (!("caches" in window)) return "Offline-Speicher wird von diesem Browser nicht unterstützt."; if (!offState) return "Offline-Vorrat wird geprüft …";
+  const line = g => { const st = offState[g]; return (st.done >= st.all ? "✓ " : "") + OFF_NAMES[g] + ": " + st.done + " von " + st.all + (offLoading && offLoading.includes(g) && st.done < st.all ? " – wird geladen …" : st.done >= st.all ? " auf dem Gerät" : " – Rest wird bei Bedarf geladen"); };
+  return line("bb") + "\n" + line("fonts");
+}
+function updOff() {
+  const el = document.getElementById("offSt"); if (el) el.textContent = offText();
+  for (const g of ["bb", "fonts"]) { const b = document.getElementById("offGo-" + g); if (b) b.hidden = !offState || !!offLoading || offState[g].done >= offState[g].all; }
+}
 async function offCheck() {
   if (!OFFLINE || !("caches" in window)) return null;
   try {
     const c = await caches.open(OFFLINE.v), have = new Set((await c.keys()).map(r => new URL(r.url).href));
     const miss = OFFLINE.files.filter(f => !have.has(new URL(f, location.href).href));
-    offState = { done: OFFLINE.files.length - miss.length, all: OFFLINE.files.length }; updOff();
+    offState = {}; for (const g of ["bb", "fonts"]) { const all = OFFLINE.files.filter(f => offGroup(f) === g).length; offState[g] = { all, done: all - miss.filter(f => offGroup(f) === g).length }; }
+    offState.all = OFFLINE.files.length; offState.done = offState.all - miss.length; updOff();
     return { c, miss };
   } catch (e) { return null; }
 }
-async function warmOffline() {
-  if (offLoading) return; const r = await offCheck(); if (!r || !r.miss.length) return;
-  offLoading = true; updOff();
+async function warmOffline(groups) {
+  if (offLoading) return; const r = await offCheck(); if (!r) return;
+  const miss = r.miss.filter(f => groups.includes(offGroup(f))); if (!miss.length) return;
+  offLoading = groups; offState.barAll = miss.length; offState.barDone = 0; updOff();
   try {
     if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
     offBar();
-    for (const f of r.miss) { try { const x = await fetch(f, { cache: "no-cache" }); if (x.ok) { await r.c.put(f, x); offState.done++; updOff(); offBar(); } } catch (e) { } }
+    for (const f of miss) { try { const x = await fetch(f, { cache: "no-cache" }); if (x.ok) { await r.c.put(f, x); offState[offGroup(f)].done++; offState.done++; offState.barDone++; updOff(); offBar(); } } catch (e) { } }
     offBar(true);
   } catch (e) { const bb = document.getElementById("offBar"); if (bb) bb.remove(); }
-  offLoading = false; updOff();
+  offLoading = null; updOff();
 }
-/* Beim Start fragen statt automatisch laden: Ja / Später (nächster Start fragt wieder) / Erst einmal nicht (in den Einstellungen nachholbar) */
+/* Beim Start fragen: Alles / Nur Bausteine / Später (nächster Start fragt wieder) / Erst einmal nicht (in den Einstellungen nachholbar) */
 async function offStartup() {
   const r = await offCheck(); if (!r || !r.miss.length) return;
   const ch = lsGet("pw_off_choice", "");
-  if (ch === "yes") return warmOffline();          // schon zugestimmt – unterbrochenen Download fortsetzen
+  if (ch === "yes") return warmOffline(["bb", "fonts"]);   // schon zugestimmt – unterbrochenen Download fortsetzen
+  if (ch === "bb" || ch === "fonts") return warmOffline([ch]);
   if (ch === "no") return;
   while (!$("sheet").hidden) await new Promise(res => setTimeout(res, 400));
-  const a = await openSheet(`<h2>Alles offline verfügbar machen?</h2>
-    <p>Die App kann jetzt einmalig alle Schriften und die Texterkennung auf dein Gerät laden (ca. 30 MB, am besten im WLAN). Danach funktioniert jede Funktion auch ohne Internet, und es gibt keine Abfragen mehr.</p>
-    <p class="hint" style="margin:0">Ohne Vorrat wird eine Schrift oder die Texterkennung erst geladen, wenn du sie das erste Mal brauchst.</p>
-    <div class="acts" style="display:grid;justify-content:stretch"><button class="primary" data-close="yes">Ja, jetzt laden</button><button data-close="later">Später</button><button data-close="no">Erst einmal nicht</button></div>`);
-  if (a === "yes") { lsSet("pw_off_choice", "yes"); warmOffline(); }
+  const a = await openSheet(`<h2>Offline verfügbar machen?</h2>
+    <p>Die App kann jetzt einmalig ihre Bausteine und Schriften auf dein Gerät laden – am besten im WLAN. Danach funktioniert alles auch ohne Internet.</p>
+    <dl class="infolist"><dt>Bausteine</dt><dd>Texterkennung und Word-Import, ca. 21 MB</dd><dt>Schriften</dt><dd>alle mitgelieferten Schriften, ca. 9 MB</dd></dl>
+    <p class="hint" style="margin:0">Was nicht vorab geladen ist, kommt beim ersten Gebrauch aus deinem Repository. Nachholen geht jederzeit unter Einstellungen → Datenschutz.</p>
+    <div class="acts" style="display:grid;justify-content:stretch"><button class="primary" data-close="yes">Ja, alles laden (ca. 30 MB)</button><button data-close="bb">Nur Bausteine (ohne Schriften)</button><button data-close="later">Später</button><button data-close="no">Erst einmal nicht</button></div>`);
+  if (a === "yes") { lsSet("pw_off_choice", "yes"); warmOffline(["bb", "fonts"]); }
+  else if (a === "bb") { lsSet("pw_off_choice", "bb"); warmOffline(["bb"]); }
   else if (a === "no") { lsSet("pw_off_choice", "no"); updOff(); toast("Jederzeit nachholbar unter Einstellungen → Datenschutz.", 3500); }
 }
 function offBar(end) {
   let b = document.getElementById("offBar");
   if (!b) { b = document.createElement("div"); b.id = "offBar"; b.className = "offbar"; b.setAttribute("role", "status"); b.innerHTML = '<span class="t"></span><span class="bar"><i></i></span>'; document.body.appendChild(b); }
-  const tb = document.querySelector(".tabbar"); b.style.bottom = ((tb ? tb.getBoundingClientRect().height : 60) + 8) + "px";
-  const ok = offState.done >= offState.all, pct = Math.round(offState.done / offState.all * 100);
-  b.querySelector(".t").textContent = ok ? "✓ Alles offline verfügbar" : end ? "Offline-Vorrat unvollständig (" + offState.done + " von " + offState.all + ") – geht beim nächsten Start weiter" : "Offline-Vorrat wird geladen · " + offState.done + " von " + offState.all;
+  const tb = document.querySelector(".tabbar"); b.style.bottom = (tb ? innerHeight - tb.getBoundingClientRect().top + 8 : 80) + "px";
+  const ok = offState.barDone >= offState.barAll, pct = Math.round(offState.barDone / offState.barAll * 100), what = offLoading && offLoading.length === 1 ? OFF_NAMES[offLoading[0]].split(" ")[0] : "Offline-Vorrat";
+  b.querySelector(".t").textContent = ok ? "✓ " + what + " offline verfügbar" : end ? what + " unvollständig (" + offState.barDone + " von " + offState.barAll + ") – geht beim nächsten Start weiter" : what + " wird geladen · " + offState.barDone + " von " + offState.barAll;
   b.querySelector("i").style.width = pct + "%"; b.classList.toggle("ok", ok);
   if (end || ok) setTimeout(() => { b.classList.add("out"); setTimeout(() => b.remove(), 400); }, ok ? 2500 : 5000);
 }
@@ -4256,7 +4374,8 @@ function tableAction(id) {
 (async () => {
   applyTheme(); applyIcon(curIcon());
   if (OFFLINE) setTimeout(offStartup, 2500);
-  if (IS_PAGES && /iPhone|iPad|iPod/.test(navigator.userAgent) && !navigator.standalone && !lsGet("pw_install_hint", false)) setTimeout(installHint, 1500);
+  updStartup();
+  if (IS_PAGES && /iPhone|iPad|iPod/.test(navigator.userAgent) && !isStandalone() && !lsGet("pw_install_hint", false)) setTimeout(installHint, 1500);
   storageOK = await checkStorage();
   await loadFonts();
   try {

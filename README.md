@@ -42,7 +42,7 @@ Mit ❤️ gemacht von Kerem.
 - Gespeicherte PDF bleibt ausfüllbar oder wird auf Wunsch fest eingefügt
 
 **Speichern & Umwandeln**
-- Seitenzahlen, Kopf- und Fußzeile mit `{seite}`, `{seiten}`, `{datum}`, `{name}`, Wasserzeichen, anderes DIN-Format, Papierfarbe
+- Kopf- und Fußzeile auf allen Seiten (Werkzeug mit Live-Vorschau, Vorlagen wie „Seite 1 von 9“, Platzhalter `{seite}`, `{seiten}`, `{datum}`, `{name}`), Seitenzahlen, Wasserzeichen, anderes DIN-Format, Papierfarbe
 - Verlustfreie Kompression, Passwortschutz (AES-256), geschützte PDFs entsperren
 - Aufteilen (nach Seitenzahl oder Kapiteln), mehrere Seiten pro Blatt
 - PDF zu Bildern (JPG/PNG), PDF zu Word (.docx), PDF zu Text
@@ -58,6 +58,8 @@ Mit ❤️ gemacht von Kerem.
 
 Die App startet dann im Vollbild mit dem gewählten Symbol und läuft nach dem ersten Laden komplett offline.
 
+> **Kein Speicher für die Sicherung:** Die App ist zum Bearbeiten da. Dokumente liegen nur im Browser-Speicher des Geräts – wichtige Dateien immer mit *Speichern* in der Dateien-App oder iCloud sichern.
+
 > **Wichtig:** Die Home-Bildschirm-App hat auf iOS einen **eigenen Speicher**, getrennt von Safari. Dokumente, die du in Safari angelegt hast, siehst du dort nicht – und umgekehrt. Wer das Symbol vom Home-Bildschirm löscht, löscht damit auch die darin gespeicherten Dokumente. Ein Symbolwechsel wird auf iOS erst sichtbar, wenn man die App neu zum Home-Bildschirm hinzufügt – vorher wichtige Dokumente sichern.
 
 ## Lokal ausprobieren
@@ -66,6 +68,18 @@ Die App startet dann im Vollbild mit dem gewählten Symbol und läuft nach dem e
 python3 -m http.server 8000
 ```
 Dann `http://localhost:8000` öffnen. Ein Doppelklick auf `index.html` reicht nicht, weil Browser dann das Laden von Schriften und der Texterkennung blockieren.
+
+---
+
+## Aktualisierung
+
+Unter *Einstellungen → Aktualisierung*:
+
+- **Automatisch aktualisieren** (Standard): Eine neue Version wird im Hintergrund geladen und beim nächsten Start benutzt. Danach erscheint kurz „Aktualisiert auf Version …“.
+- **Automatik aus:** Die App bleibt auf ihrer Version, bis du selbst aktualisierst.
+- **Nach Updates suchen:** prüft sofort und zeigt bei einer neueren Version „Jetzt aktualisieren“.
+
+Der Offline-Vorrat (Schriften, Texterkennung) bleibt bei Updates erhalten und wird nicht neu geladen.
 
 ---
 
@@ -84,9 +98,9 @@ Die App ist so gebaut, dass sie **ohne fremde Dienste** auskommt.
 | Wann | Was wird geladen |
 |---|---|
 | Beim ersten Öffnen | `index.html`, `lib/`, `fonts/ui/`, `icons/`, Manifest, `sw.js` |
-| Offline-Vorrat (nur nach Zustimmung) | **alle** Schriften aus `fonts/` und die Texterkennung aus `ocr/` (zusammen ca. 30 MB). Beim Start fragt die App: *Ja* lädt sofort (mit Fortschrittsleiste, wird bei Unterbrechung fortgesetzt), *Später* fragt beim nächsten Start erneut, *Erst einmal nicht* fragt nicht mehr – nachholbar unter *Einstellungen → Datenschutz*. |
+| Offline-Vorrat (nur nach Zustimmung) | Beim Start fragt die App: *Ja, alles* (Bausteine + Schriften, ca. 30 MB), *Nur Bausteine* (Texterkennung und Word-Import aus `ocr/` und `lib/`, ca. 21 MB – Schriften bei Bedarf), *Später* (fragt beim nächsten Start erneut) oder *Erst einmal nicht*. Fehlendes lässt sich jederzeit unter *Einstellungen → Datenschutz* nachladen. Eine Leiste zeigt den Fortschritt; Unterbrochenes geht beim nächsten Start weiter. |
 | Ohne Vorrat | eine Schrift oder die Texterkennung wird erst beim ersten Gebrauch geladen |
-| Bei späteren Starts | kurze Prüfung, ob es eine neue Version gibt |
+| Bei späteren Starts | der Browser prüft kurz, ob es eine neue Version gibt (siehe *Aktualisierung*) |
 | Speichern | nichts – die Datei entsteht auf dem Gerät |
 | Links in den Einstellungen | fremde Seiten öffnen sich nur beim Antippen (ohne Referrer) |
 
