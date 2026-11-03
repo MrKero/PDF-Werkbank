@@ -84,7 +84,8 @@ Die App ist so gebaut, dass sie **ohne fremde Dienste** auskommt.
 | Wann | Was wird geladen |
 |---|---|
 | Beim ersten Öffnen | `index.html`, `lib/`, `fonts/ui/`, `icons/`, Manifest, `sw.js` |
-| Direkt danach im Hintergrund | **alle** Schriften aus `fonts/` und die Texterkennung aus `ocr/` (zusammen ca. 30 MB). Eine Leiste zeigt den Fortschritt; wird die App vorher geschlossen, geht es beim nächsten Start weiter. |
+| Offline-Vorrat (nur nach Zustimmung) | **alle** Schriften aus `fonts/` und die Texterkennung aus `ocr/` (zusammen ca. 30 MB). Beim Start fragt die App: *Ja* lädt sofort (mit Fortschrittsleiste, wird bei Unterbrechung fortgesetzt), *Später* fragt beim nächsten Start erneut, *Erst einmal nicht* fragt nicht mehr – nachholbar unter *Einstellungen → Datenschutz*. |
+| Ohne Vorrat | eine Schrift oder die Texterkennung wird erst beim ersten Gebrauch geladen |
 | Bei späteren Starts | kurze Prüfung, ob es eine neue Version gibt |
 | Speichern | nichts – die Datei entsteht auf dem Gerät |
 | Links in den Einstellungen | fremde Seiten öffnen sich nur beim Antippen (ohne Referrer) |
