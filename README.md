@@ -87,7 +87,7 @@ Dann `http://localhost:8000` öffnen. Ein Doppelklick auf `index.html` reicht ni
 
 ### Neue Version veröffentlichen
 
-Dateien ersetzen und in `sw.js` den Wert `VERSION` erhöhen (z. B. von `pdf-werkbank-2.2` auf `pdf-werkbank-2.3`), damit Geräte die neue Version statt der zwischengespeicherten laden.
+Dateien ersetzen und in `sw.js` den Wert `VERSION` erhöhen (z. B. von `pdf-werkbank-2.4` auf `pdf-werkbank-2.5`), damit Geräte die neue Version statt der zwischengespeicherten laden.
 
 ---
 

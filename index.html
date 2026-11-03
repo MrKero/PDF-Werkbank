@@ -120,8 +120,9 @@ h2.sec{font-family:var(--f-display);font-size:1rem;margin:22px 0 8px}
 .offbar{position:fixed;left:50%;transform:translateX(-50%);z-index:30;width:min(92vw,420px);background:var(--surface);color:var(--ink);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:12px;padding:9px 12px 10px;font-size:.84rem;display:grid;gap:7px;transition:opacity .35s;pointer-events:none}
 .offbar .bar{display:block;height:5px;border-radius:3px;background:var(--line);overflow:hidden}.offbar .bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
 .offbar.ok .bar i{background:#1f9d55}.offbar.out{opacity:0}
-.tl{position:absolute;inset:0;overflow:hidden;line-height:1;z-index:1;-webkit-user-select:text;user-select:text;-webkit-touch-callout:default;--k:1}
-.tl span{position:absolute;white-space:pre;color:transparent;transform-origin:0 0;font-family:sans-serif;cursor:text}
+.tl{position:absolute;inset:0;overflow:hidden;line-height:1;z-index:1;-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+.tl span{position:absolute;white-space:pre;color:transparent;transform-origin:0 0;font-family:sans-serif;cursor:text;line-height:1;padding:.14em 0 .3em}
+.tl br{line-height:0}
 
 .tl .eoc{position:absolute;inset:100% 0 0;z-index:-1;cursor:default;-webkit-user-select:none;user-select:none}.tl.selecting .eoc{top:0}
 .tl ::selection{background:rgba(43,84,214,.32);color:transparent}
@@ -231,7 +232,8 @@ label.chk input{width:20px;height:20px;accent-color:var(--accent);flex:none}
 @media (prefers-reduced-motion:no-preference){main.swl{animation:swl .22s ease-out}main.swr{animation:swr .22s ease-out}}
 @keyframes swl{from{transform:translateX(28px);opacity:.4}to{transform:none;opacity:1}}
 @keyframes swr{from{transform:translateX(-28px);opacity:.4}to{transform:none;opacity:1}}
-.row input[type=range]{flex:1;min-width:90px;accent-color:var(--accent)}
+.row input[type=range]{flex:0 0 auto;width:140px;min-width:0;margin:0 14px 0 2px;accent-color:var(--accent)}
+#eOpts::after{content:"";flex:0 0 6px}
 .row select,.row input[type=number]{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
 .row input[type=color]{width:34px;height:34px;border:0;padding:0;background:none;flex:none}
 .fpick{display:flex;gap:6px;align-items:center;min-width:0}
@@ -253,7 +255,7 @@ label.chk input{width:20px;height:20px;accent-color:var(--accent);flex:none}
 .sheet p{margin:0;color:var(--muted);font-size:.86rem}
 .sigpad{background:#fff;border:1px dashed var(--line);border-radius:10px;touch-action:none;width:100%;height:180px;display:block}
 .paper{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(64px + env(safe-area-inset-top,0px));z-index:40;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:.88rem;max-width:90vw;text-align:center}
+.toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(64px + env(safe-area-inset-top,0px));z-index:40;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:.88rem;max-width:90vw;text-align:center;pointer-events:none;-webkit-user-select:none;user-select:none}
 .busy{position:fixed;inset:0;z-index:45;background:rgba(10,15,20,.4);display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--f-mono)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -3425,22 +3427,45 @@ async function buildTextLayer(d, p) {
   d._vpW = vp.width; d.style.setProperty("--k", (parseFloat(d.style.width) || vp.width) / vp.width);
   const tl = document.createElement("div"); tl.className = "tl";
   const frag = document.createDocumentFragment();
-  items.forEach((it, n) => {
-    if (it.str && it.str.trim() !== "") {
-      const [x0, y0] = vp.convertToViewportPoint(it.x, it.y), [x1, y1] = vp.convertToViewportPoint(it.x + Math.cos(it.ang), it.y + Math.sin(it.ang));
-      const rot = Math.atan2(y1 - y0, x1 - x0), sz = Math.max(1, it.size);
-      tlCtx.font = sz + "px sans-serif"; const mw = tlCtx.measureText(it.str).width || 1, sx = Math.max(0.05, Math.min(20, (it.w || mw) / mw));
-      const sp = document.createElement("span"); sp.textContent = it.str;
-      sp.style.cssText = `left:${(x0 / vp.width * 100).toFixed(3)}%;top:${(y0 / vp.height * 100).toFixed(3)}%;font-size:calc(var(--k) * ${sz.toFixed(2)}px);transform:rotate(${rot.toFixed(4)}rad) translateY(-0.86em) scaleX(${sx.toFixed(4)})`;
-      frag.appendChild(sp);
-    }
-    frag.appendChild(it.eol ? document.createElement("br") : document.createTextNode(n < items.length - 1 && !/\s$/.test(it.str) ? " " : ""));
-  });
+  // Lückenlos: jedes Stück reicht bis zum nächsten Stück derselben Zeile (inkl. Leerzeichen), damit der
+  // Auswahlgriff auf dem iPhone nie ins Leere fällt. Stücke einer Zeile werden zusammengefasst.
+  const words = items.filter(it => it.str && it.str.trim() !== "");
+  const sameLine = (a, b) => { if (Math.abs(a.ang - b.ang) > 0.02) return false; const c = Math.cos(a.ang), sn = Math.sin(a.ang), along = (b.x - a.x) * c + (b.y - a.y) * sn, across = -(b.x - a.x) * sn + (b.y - a.y) * c;
+    return Math.abs(across) < 0.35 * Math.max(a.size, 1) && along > -0.2 * a.size && along - a.w < 3 * a.size; };
+  const lines = [];
+  for (const it of words) { const L = lines[lines.length - 1], last = L && L[L.length - 1]; if (last && !last.eol && sameLine(last, it)) L.push(it); else lines.push([it]); }
+  for (const L of lines) {
+    const f = L[0], c = Math.cos(f.ang), sn = Math.sin(f.ang), last = L[L.length - 1];
+    let txt = "";
+    L.forEach((it, j) => { txt += it.str; const nx = L[j + 1]; if (nx) { const gap = (nx.x - it.x) * c + (nx.y - it.y) * sn - it.w; if (gap > 0.12 * it.size && !/\s$/.test(it.str) && !/^\s/.test(nx.str)) txt += " "; } });
+    const width = Math.max(1, (last.x - f.x) * c + (last.y - f.y) * sn + last.w);
+    const [x0, y0] = vp.convertToViewportPoint(f.x, f.y), [x1, y1] = vp.convertToViewportPoint(f.x + c, f.y + sn);
+    const rot = Math.atan2(y1 - y0, x1 - x0), sz = Math.max(1, Math.max(...L.map(it => it.size)));
+    tlCtx.font = sz + "px sans-serif"; const mw = tlCtx.measureText(txt).width || 1, sx = Math.max(0.05, Math.min(20, width / mw));
+    const sp = document.createElement("span"); sp.textContent = txt;
+    sp.style.cssText = `left:${(x0 / vp.width * 100).toFixed(3)}%;top:${(y0 / vp.height * 100).toFixed(3)}%;font-size:calc(var(--k) * ${sz.toFixed(2)}px);transform:rotate(${rot.toFixed(4)}rad) translateY(-1em) scaleX(${sx.toFixed(4)})`;
+    frag.appendChild(sp); frag.appendChild(document.createElement("br"));
+  }
   const end = document.createElement("div"); end.className = "eoc"; frag.appendChild(end);
   tl.appendChild(frag); d.appendChild(tl);
+  tl.addEventListener("touchstart", () => tl.classList.add("selecting"), { passive: true });
   tl.addEventListener("mousedown", () => { tl.classList.add("selecting"); const up = () => { tl.classList.remove("selecting"); window.removeEventListener("mouseup", up); }; window.addEventListener("mouseup", up); });
   if (!lsGet("pw_sel_hint", false)) { lsSet("pw_sel_hint", true); toast(matchMedia("(pointer: coarse)").matches ? "Tipp: Text lange gedrückt halten, um ihn zu markieren und zu kopieren." : "Tipp: Text mit der Maus markieren und mit Strg+C kopieren.", 3500); }
 }
+
+let tlPrevRange = null;
+document.addEventListener("selectionchange", () => {
+  const sel = document.getSelection(), layers = document.querySelectorAll(".tl");
+  if (!layers.length) return;
+  if (!sel || !sel.rangeCount || sel.isCollapsed) { layers.forEach(t => { if (!t.matches(":active")) t.classList.remove("selecting"); }); tlPrevRange = null; return; }
+  const r = sel.getRangeAt(0);
+  layers.forEach(t => t.classList.toggle("selecting", r.intersectsNode(t)));
+  const modStart = tlPrevRange && (r.compareBoundaryPoints(Range.END_TO_END, tlPrevRange) === 0 || r.compareBoundaryPoints(Range.START_TO_END, tlPrevRange) === 0);
+  let an = modStart ? r.startContainer : r.endContainer; if (an && an.nodeType === 3) an = an.parentNode;
+  const t = an && an.closest ? an.closest(".tl") : null;
+  if (t && an !== t && !an.classList.contains("eoc")) { const eoc = t.querySelector(".eoc"); if (eoc) an.parentNode.insertBefore(eoc, modStart ? an : an.nextSibling); }
+  tlPrevRange = r.cloneRange();
+});
 
 /* ---------- Zoomen am PC: Strg + Mausrad (auch Trackpad-Geste) ---------- */
 function attachWheel(scroller, inner, hooks) {
@@ -3614,9 +3639,9 @@ function installHint() {
   </dl>
   <p class="hint" id="offSt" style="margin:0"></p>
   <p class="hint" style="margin:0">Was der Webhoster (z. B. GitHub) dabei sieht: wie bei jeder Webseite deine IP-Adresse, die Uhrzeit und den Gerätetyp – nie den Inhalt deiner Dokumente.</p>`;/*/NET*/
-const APP_VERSION = "2.2 · 03.11.2026";
+const APP_VERSION = "2.4 · 03.11.2026";
 /* Offline-Vorrat (nur GitHub-Pages-Fassung): alle Schriften und die Texterkennung gleich nach dem ersten Öffnen speichern */
-const OFFLINE = /*OFFLINE*/{"v": "pdf-werkbank-2.2", "files": ["fonts/Caladea-Bold.ttf", "fonts/Caladea-BoldItalic.ttf", "fonts/Caladea-Italic.ttf", "fonts/Caladea-Regular.ttf", "fonts/Carlito-Bold.ttf", "fonts/Carlito-BoldItalic.ttf", "fonts/Carlito-Italic.ttf", "fonts/Carlito-Regular.ttf", "fonts/Caveat-Bold.ttf", "fonts/Caveat-Regular.ttf", "fonts/DejaVuSans-Bold.ttf", "fonts/DejaVuSans-BoldItalic.ttf", "fonts/DejaVuSans-Italic.ttf", "fonts/DejaVuSans-Regular.ttf", "fonts/EBGaramond-Bold.ttf", "fonts/EBGaramond-BoldItalic.ttf", "fonts/EBGaramond-Italic.ttf", "fonts/EBGaramond-Regular.ttf", "fonts/Inter-Bold.ttf", "fonts/Inter-BoldItalic.ttf", "fonts/Inter-Italic.ttf", "fonts/Inter-Regular.ttf", "fonts/LatinModern-Bold.ttf", "fonts/LatinModern-BoldItalic.ttf", "fonts/LatinModern-Italic.ttf", "fonts/LatinModern-Regular.ttf", "fonts/Lato-Bold.ttf", "fonts/Lato-BoldItalic.ttf", "fonts/Lato-Italic.ttf", "fonts/Lato-Regular.ttf", "fonts/LiberationMono-Bold.ttf", "fonts/LiberationMono-BoldItalic.ttf", "fonts/LiberationMono-Italic.ttf", "fonts/LiberationMono-Regular.ttf", "fonts/LiberationSans-Bold.ttf", "fonts/LiberationSans-BoldItalic.ttf", "fonts/LiberationSans-Italic.ttf", "fonts/LiberationSans-Regular.ttf", "fonts/LiberationSerif-Bold.ttf", "fonts/LiberationSerif-BoldItalic.ttf", "fonts/LiberationSerif-Italic.ttf", "fonts/LiberationSerif-Regular.ttf", "fonts/Merriweather-Bold.ttf", "fonts/Merriweather-BoldItalic.ttf", "fonts/Merriweather-Italic.ttf", "fonts/Merriweather-Regular.ttf", "fonts/Montserrat-Bold.ttf", "fonts/Montserrat-BoldItalic.ttf", "fonts/Montserrat-Italic.ttf", "fonts/Montserrat-Regular.ttf", "fonts/NotoSans-Bold.ttf", "fonts/NotoSans-BoldItalic.ttf", "fonts/NotoSans-Italic.ttf", "fonts/NotoSans-Regular.ttf", "fonts/NotoSerif-Bold.ttf", "fonts/NotoSerif-BoldItalic.ttf", "fonts/NotoSerif-Italic.ttf", "fonts/NotoSerif-Regular.ttf", "fonts/OpenSans-Bold.ttf", "fonts/OpenSans-BoldItalic.ttf", "fonts/OpenSans-Italic.ttf", "fonts/OpenSans-Regular.ttf", "fonts/Poppins-Bold.ttf", "fonts/Poppins-BoldItalic.ttf", "fonts/Poppins-Italic.ttf", "fonts/Poppins-Regular.ttf", "fonts/Roboto-Bold.ttf", "fonts/Roboto-BoldItalic.ttf", "fonts/Roboto-Italic.ttf", "fonts/Roboto-Regular.ttf", "fonts/SourceSans3-Bold.ttf", "fonts/SourceSans3-BoldItalic.ttf", "fonts/SourceSans3-Italic.ttf", "fonts/SourceSans3-Regular.ttf", "lib/mammoth.browser.min.js", "lib/tesseract.min.js", "ocr/lang/deu.traineddata.b64.txt", "ocr/lang/eng.traineddata.b64.txt", "ocr/tesseract-core-lstm.wasm.js", "ocr/tesseract-core-relaxedsimd-lstm.wasm.js", "ocr/tesseract-core-simd-lstm.wasm.js", "ocr/worker-wrap.js", "ocr/worker.min.js"]}/*/OFFLINE*/;
+const OFFLINE = /*OFFLINE*/{"v": "pdf-werkbank-2.4", "files": ["fonts/Caladea-Bold.ttf", "fonts/Caladea-BoldItalic.ttf", "fonts/Caladea-Italic.ttf", "fonts/Caladea-Regular.ttf", "fonts/Carlito-Bold.ttf", "fonts/Carlito-BoldItalic.ttf", "fonts/Carlito-Italic.ttf", "fonts/Carlito-Regular.ttf", "fonts/Caveat-Bold.ttf", "fonts/Caveat-Regular.ttf", "fonts/DejaVuSans-Bold.ttf", "fonts/DejaVuSans-BoldItalic.ttf", "fonts/DejaVuSans-Italic.ttf", "fonts/DejaVuSans-Regular.ttf", "fonts/EBGaramond-Bold.ttf", "fonts/EBGaramond-BoldItalic.ttf", "fonts/EBGaramond-Italic.ttf", "fonts/EBGaramond-Regular.ttf", "fonts/Inter-Bold.ttf", "fonts/Inter-BoldItalic.ttf", "fonts/Inter-Italic.ttf", "fonts/Inter-Regular.ttf", "fonts/LatinModern-Bold.ttf", "fonts/LatinModern-BoldItalic.ttf", "fonts/LatinModern-Italic.ttf", "fonts/LatinModern-Regular.ttf", "fonts/Lato-Bold.ttf", "fonts/Lato-BoldItalic.ttf", "fonts/Lato-Italic.ttf", "fonts/Lato-Regular.ttf", "fonts/LiberationMono-Bold.ttf", "fonts/LiberationMono-BoldItalic.ttf", "fonts/LiberationMono-Italic.ttf", "fonts/LiberationMono-Regular.ttf", "fonts/LiberationSans-Bold.ttf", "fonts/LiberationSans-BoldItalic.ttf", "fonts/LiberationSans-Italic.ttf", "fonts/LiberationSans-Regular.ttf", "fonts/LiberationSerif-Bold.ttf", "fonts/LiberationSerif-BoldItalic.ttf", "fonts/LiberationSerif-Italic.ttf", "fonts/LiberationSerif-Regular.ttf", "fonts/Merriweather-Bold.ttf", "fonts/Merriweather-BoldItalic.ttf", "fonts/Merriweather-Italic.ttf", "fonts/Merriweather-Regular.ttf", "fonts/Montserrat-Bold.ttf", "fonts/Montserrat-BoldItalic.ttf", "fonts/Montserrat-Italic.ttf", "fonts/Montserrat-Regular.ttf", "fonts/NotoSans-Bold.ttf", "fonts/NotoSans-BoldItalic.ttf", "fonts/NotoSans-Italic.ttf", "fonts/NotoSans-Regular.ttf", "fonts/NotoSerif-Bold.ttf", "fonts/NotoSerif-BoldItalic.ttf", "fonts/NotoSerif-Italic.ttf", "fonts/NotoSerif-Regular.ttf", "fonts/OpenSans-Bold.ttf", "fonts/OpenSans-BoldItalic.ttf", "fonts/OpenSans-Italic.ttf", "fonts/OpenSans-Regular.ttf", "fonts/Poppins-Bold.ttf", "fonts/Poppins-BoldItalic.ttf", "fonts/Poppins-Italic.ttf", "fonts/Poppins-Regular.ttf", "fonts/Roboto-Bold.ttf", "fonts/Roboto-BoldItalic.ttf", "fonts/Roboto-Italic.ttf", "fonts/Roboto-Regular.ttf", "fonts/SourceSans3-Bold.ttf", "fonts/SourceSans3-BoldItalic.ttf", "fonts/SourceSans3-Italic.ttf", "fonts/SourceSans3-Regular.ttf", "lib/mammoth.browser.min.js", "lib/tesseract.min.js", "ocr/lang/deu.traineddata.b64.txt", "ocr/lang/eng.traineddata.b64.txt", "ocr/tesseract-core-lstm.wasm.js", "ocr/tesseract-core-relaxedsimd-lstm.wasm.js", "ocr/tesseract-core-simd-lstm.wasm.js", "ocr/worker-wrap.js", "ocr/worker.min.js"]}/*/OFFLINE*/;
 let offState = null;
 function offText() { if (!OFFLINE) return ""; if (!("caches" in window)) return "Offline-Speicher wird von diesem Browser nicht unterstützt."; if (!offState) return "Offline-Vorrat wird geprüft …"; return offState.done >= offState.all ? "✓ Offline-Vorrat vollständig: alle " + offState.all + " Dateien (Schriften, Texterkennung) liegen auf dem Gerät." : "Offline-Vorrat wird geladen: " + offState.done + " von " + offState.all + " Dateien …"; }
 function updOff() { const el = document.getElementById("offSt"); if (el) el.textContent = offText(); }
