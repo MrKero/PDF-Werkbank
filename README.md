@@ -20,11 +20,11 @@ Mit ❤️ gemacht von Kerem.
 - Übersicht mit Formatangabe (z. B. A4) und Infos zu jeder Seite
 - Lesemodus mit Zoom (zwei Finger, am PC Strg + Mausrad) und markierbarem Text zum Kopieren
 - Drehen, duplizieren, sortieren per Ziehen, löschen, umkehren, extrahieren
-- Neue Seiten: leer, liniert, kariert, Punktraster, Millimeterpapier, Notenlinien, Cornell – in DIN A3–A6, Letter und Legal, mit wählbarer Papierfarbe
+- Neue Seiten: leer, liniert, kariert, Punktraster, Millimeterpapier, Notenlinien, Cornell – in DIN A3–A6, Letter und Legal, im Hoch- oder Querformat (auch einzeln zwischen anderen Seiten), mit wählbarer Papierfarbe
 - Favoriten und Gliederung (wird als Lesezeichen in die PDF geschrieben)
 
 **Bearbeiten**
-- Kugelschreiber, Fineliner, Bleistift, Marker, Lineal mit Längenanzeige, Radierer
+- Kugelschreiber, Fineliner, Bleistift, Marker, Lineal mit Längenanzeige, Radierer – Lineal-Linien lassen sich an den Enden vorhandener Linien genau anknüpfen
 - Formen: Rechteck, Kreis, Ellipse, Linie, Pfeile, Koordinatensystem, Markierfläche
 - Text einfügen mit 22 Schriftfamilien sowie eigenen TTF/OTF-Schriften
 - **Text ändern**: erkennt Schriftart, Stil, Größe und Farbe des Originals und entfernt den alten Text wirklich aus der Datei

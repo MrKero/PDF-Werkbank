@@ -99,8 +99,8 @@ h2.sec{font-family:var(--f-display);font-size:1rem;margin:22px 0 8px}
 .tab::before{display:none}
 .tab.on{color:var(--accent);font-weight:700;background:color-mix(in srgb,var(--accent) 13%,transparent)}
 .tab.on svg{background:transparent;stroke-width:2}
-.panel.warnbox{background:color-mix(in srgb,#f0a020 13%,var(--surface));border:1px solid color-mix(in srgb,#f0a020 50%,transparent);gap:6px}
-.panel.warnbox span{font-size:.88rem;line-height:1.45}
+.warnbox{display:grid;padding:12px;border-radius:10px;background:color-mix(in srgb,#f0a020 13%,var(--surface));border:1px solid color-mix(in srgb,#f0a020 50%,transparent);gap:6px}
+.warnbox span{font-size:.88rem;line-height:1.45}
 .hfprev{display:grid;justify-items:center;gap:6px;background:var(--chip);border-radius:10px;padding:12px}
 .hfprev canvas{width:230px;max-width:100%;height:auto;background:#fff;box-shadow:var(--shadow);border-radius:2px}
 #offSt{white-space:pre-line}
@@ -368,9 +368,9 @@ catch(e){document.write('<link rel="apple-touch-icon" href="icons/oled-180.png">
 </main>
 
 <nav class="tabbar wrap" id="tabbar" aria-label="Hauptbereiche">
-  <button class="tab on" data-tab="start"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h10l6 6v10H4z"/><path d="M14 4v6h6"/></svg>Start</button>
-  <button class="tab" data-tab="files"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4l2 2.5h9A1.5 1.5 0 0 1 21 9v9.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/></svg>Dateien</button>
   <button class="tab" data-tab="recent"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>Zuletzt</button>
+  <button class="tab" data-tab="files"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4l2 2.5h9A1.5 1.5 0 0 1 21 9v9.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/></svg>Dateien</button>
+  <button class="tab on" data-tab="start"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h10l6 6v10H4z"/><path d="M14 4v6h6"/></svg>Start</button>
   <button class="tab" data-tab="tools"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.4-3.4a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z"/></svg>Werkzeuge</button>
   <button class="tab" data-tab="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.32 9.97 L21.87 10.39 L21.87 13.61 L19.32 14.03 L18.61 15.75 L20.12 17.84 L17.84 20.12 L15.75 18.61 L14.03 19.32 L13.61 21.87 L10.39 21.87 L9.97 19.32 L8.25 18.61 L6.16 20.12 L3.88 17.84 L5.39 15.75 L4.68 14.03 L2.13 13.61 L2.13 10.39 L4.68 9.97 L5.39 8.25 L3.88 6.16 L6.16 3.88 L8.25 5.39 L9.97 4.68 L10.39 2.13 L13.61 2.13 L14.03 4.68 L15.75 5.39 L17.84 3.88 L20.12 6.16 L18.61 8.25 Z"/><circle cx="12" cy="12" r="3"/></svg>Einstellungen</button>
 </nav>
@@ -2142,7 +2142,7 @@ function tplForm(o) {
   const fmts = Object.keys(C.FORMATS);
   return `<label class="f">Vorlage</label><div class="tplgrid" id="tplGrid">${TPLS.map(([k, n]) => `<button type="button" data-tpl="${k}" class="${k === (o.tpl || "leer") ? "on" : ""}"><canvas width="92" height="124" data-prev="${k}"></canvas>${n}</button>`).join("")}</div>
     <div class="two"><label class="f">Format<select id="nF">${o.like ? `<option value="like" selected>Wie benachbarte Seite (${esc(o.like.short)})</option>` : ""}${fmts.map(f => `<option${!o.like && f === "A4" ? " selected" : ""} value="${f}">${f.length <= 3 ? "DIN " : ""}${f} (${C.FORMATS[f][0]}×${C.FORMATS[f][1]} mm)</option>`).join("")}</select></label>
-      <label class="f">Ausrichtung<select id="nO"><option value="hoch">Hochformat</option><option value="quer">Querformat</option></select></label></div>
+      <label class="f">Ausrichtung<select id="nO"><option value="hoch"${o.like && o.like.land ? "" : " selected"}>▯ Hochformat</option><option value="quer"${o.like && o.like.land ? " selected" : ""}>▭ Querformat</option></select></label></div>
     <div class="two"><label class="f">Seitenanzahl<input type="number" id="nN" min="1" max="200" value="1" inputmode="numeric"></label>
       <label class="f">Linienfarbe<select id="nL"><option value="#9fb3c8">Blaugrau</option><option value="#b9b9b9">Grau</option><option value="#e4a0a0">Rot</option><option value="#8fbf9a">Grün</option><option value="#5d6b7a">Dunkel</option></select></label></div>
     <label class="f">Papierfarbe</label>${paperPicker("#ffffff", "nP")}`;
@@ -2152,10 +2152,13 @@ function wireTplForm(box, o) {
   const draw = () => box.querySelectorAll("[data-prev]").forEach(c => drawTplPreview(c, c.dataset.prev, box.querySelector("#nL").value));
   box.querySelector("#tplGrid").onclick = e => { const b = e.target.closest("[data-tpl]"); if (!b) return; st.tpl = b.dataset.tpl; box.querySelectorAll("[data-tpl]").forEach(x => x.classList.toggle("on", x === b)); };
   box.querySelector("#nL").onchange = draw; draw();
-  if (o.like) { const sel = box.querySelector("#nO"), fs = box.querySelector("#nF"); const sync = () => { sel.disabled = fs.value === "like"; if (fs.value === "like") sel.value = o.like.land ? "quer" : "hoch"; }; fs.onchange = sync; sync(); }
+  // Ausrichtung bleibt immer wählbar – auch bei „Wie benachbarte Seite“ (z. B. eine Querseite zwischen Hochformat-Seiten)
+  const syncPrev = () => { const q = box.querySelector("#nO").value === "quer"; box.querySelectorAll("[data-prev]").forEach(c => { c.style.transform = q ? "rotate(-90deg) scale(.74)" : ""; }); };
+  box.querySelector("#nO").addEventListener("change", syncPrev); syncPrev();
   wirePaper(box, "nP", c => st.paper = c || "#ffffff");
   return () => { const f = box.querySelector("#nF").value, r = { tpl: st.tpl, orient: box.querySelector("#nO").value, count: Math.max(1, Math.min(200, +box.querySelector("#nN").value || 1)), paper: st.paper, line: box.querySelector("#nL").value };
-    if (f === "like") { r.sizeMm = [o.like.wmm, o.like.hmm]; r.orient = "hoch"; r.format = o.like.short; } else r.format = f;
+    if (f === "like") { r.sizeMm = [Math.min(o.like.wmm, o.like.hmm), Math.max(o.like.wmm, o.like.hmm)]; r.format = o.like.fmt || Math.round(r.sizeMm[0]) + "×" + Math.round(r.sizeMm[1]); } else r.format = f;
+    if (r.orient === "quer") r.format += " quer";
     r.label = (TPLS.find(t => t[0] === r.tpl) || [0, r.tpl])[1]; return r; };
 }
 function newSheet() {
@@ -2267,7 +2270,7 @@ $("eOpts").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
   if (b.dataset.col) { ed.color = b.dataset.col; if (ed.tool === "select" && ed.selG) recolorSel(ed.color); const sl = $("eOpts").scrollLeft; renderOpts(); $("eOpts").scrollLeft = sl; return; }
   if (b.dataset.pen) { if (ed.pen === "marker" && b.dataset.pen !== "marker" && ed.color === "#f5c518") ed.color = "#111111"; ed.pen = b.dataset.pen; if (ed.pen === "marker" && !["#f5c518", "#1d8a4a", "#1f4fd1", "#ef7d00"].includes(ed.color)) ed.color = "#f5c518"; renderOpts(); return; }
-  if (b.id === "oRuler") { ed.ruler = !ed.ruler; renderOpts(); return; }
+  if (b.id === "oRuler") { ed.ruler = !ed.ruler; renderOpts(); redrawOv(); if (ed.ruler && lineEnds(pages[ed.i]).length && !lsGet("pw_snap_hint", false)) { lsSet("pw_snap_hint", true); toast("Blaue Kreise = Linienenden. Dort ansetzen, um genau anzuknüpfen.", 3500); } return; }
   if (b.dataset.em) { ed.eraseMode = b.dataset.em; renderOpts(); return; }
   if (b.dataset.sh) { ed.shape = b.dataset.sh; renderOpts(); return; }
   if (b.dataset.fill) { ed.fill = b.dataset.fill; renderOpts(); return; }
@@ -2326,6 +2329,16 @@ function redrawOv() {
   if (ed.hlFor && ed.hlFor.length) { ctx.fillStyle = "rgba(255,140,0,.35)"; for (const r of ed.hlFor) { const a = vpPt(ed.vp, [r[0], r[1]]), b = vpPt(ed.vp, [r[2], r[3]]); ctx.fillRect(Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1])); } }
   drawFields(ctx, ed.vp, p, ed.tool === "form");
   drawAnns(ctx, ed.vp, ed.cur ? p.ann.concat(ed.cur) : p.ann, ed.R, ed.selG);
+  if (ed.tool === "pen" && ed.ruler) { // Anknüpfpunkte: Enden vorhandener Linien
+    const ends = lineEnds(p, ed.cur && ed.cur.uid), d = ed.dpr, hot = [ed.cur && ed.snapA, ed.cur && ed.snapB].filter(Boolean);
+    ctx.save();
+    for (const e of ends) { const [x, y] = vpPt(ed.vp, e), on = hot.some(h => h[0] === e[0] && h[1] === e[1]);
+      ctx.beginPath(); ctx.arc(x, y, (on ? 11 : 7) * d, 0, Math.PI * 2); ctx.fillStyle = on ? "rgba(43,84,214,.22)" : "rgba(255,255,255,.75)"; ctx.fill();
+      ctx.lineWidth = (on ? 2 : 1.4) * d; ctx.strokeStyle = "#2b54d6"; ctx.stroke();
+      if (on) { ctx.beginPath(); ctx.moveTo(x - 15 * d, y); ctx.lineTo(x + 15 * d, y); ctx.moveTo(x, y - 15 * d); ctx.lineTo(x, y + 15 * d); ctx.lineWidth = 1 * d; ctx.stroke(); }
+      else { ctx.beginPath(); ctx.arc(x, y, 1.8 * d, 0, Math.PI * 2); ctx.fillStyle = "#2b54d6"; ctx.fill(); } }
+    ctx.restore();
+  }
   if (ed.live) { // Messanzeige
     const [x, y] = ed.live.at; ctx.save(); ctx.font = `600 ${13 * ed.dpr}px ${getComputedStyle(document.body).fontFamily}`;
     const w = ctx.measureText(ed.live.txt).width + 14 * ed.dpr;
@@ -2350,6 +2363,21 @@ function evPx(ev) { const r = ov.getBoundingClientRect(); return [(ev.clientX - 
 const toPdf = v => ed.vp.convertToPdfPoint(v[0], v[1]);
 const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 function calLen(lenPt) { return lenPt * S.cal.f; }
+// Endpunkte vorhandener Linien (Lineal-Striche, Linien, Pfeile) – zum präzisen Anknüpfen
+function lineEnds(p, skipUid) {
+  const out = [];
+  for (const a of p.ann) {
+    if (skipUid && a.uid === skipUid) continue;
+    if (a.t === "ink" && a.pts && a.pts.length === 2) { out.push(a.pts[0], a.pts[1]); }   // nur gerade Lineal-Striche, keine Freihandlinien
+    else if ((a.t === "line" || a.t === "arrow" || a.t === "dbl") && (a.w || 1) >= 0.5 && !a.ticks) out.push(a.p1, a.p2);
+  }
+  return out;
+}
+function nearEnd(v, p, skipUid) {
+  const R = 18 * ed.dpr; let best = null, bd = R;
+  for (const e of lineEnds(p, skipUid)) { const q = vpPt(ed.vp, e), d = Math.hypot(q[0] - v[0], q[1] - v[1]); if (d < bd) { bd = d; best = e; } }
+  return best;
+}
 function snapAngle(v0, v1) {
   const dx = v1[0] - v0[0], dy = v1[1] - v0[1], L = Math.hypot(dx, dy), a = Math.atan2(dy, dx), st = Math.PI / 12, sn = Math.round(a / st) * st;
   return Math.abs(a - sn) < 0.05 ? [v0[0] + L * Math.cos(sn), v0[1] + L * Math.sin(sn)] : v1;
@@ -2379,7 +2407,9 @@ ov.addEventListener("pointerdown", ev => {
   }
   if (t === "erase") { snap(); ed.eraseSnap = true; eraseAt(pt); return; }
   snap();
-  if (t === "pen") { const P = PENS[ed.pen]; ed.cur = { t: "ink", pen: ed.pen, c: ed.color, w: ed.sizes[ed.pen], op: P.op, pts: [pt], uid: nid() }; }
+  if (t === "pen") { const P = PENS[ed.pen]; let start = pt;
+    if (ed.ruler) { const e = nearEnd(v, p); ed.snapA = e; ed.snapB = null; if (e) { start = [e[0], e[1]]; ed.v0 = vpPt(ed.vp, e); } }
+    ed.cur = { t: "ink", pen: ed.pen, c: ed.color, w: ed.sizes[ed.pen], op: P.op, pts: [start], uid: nid() }; }
   else if (t === "shape") ed.cur = { t: "_shape", v0: v, v1: v };
   else if (t === "measure") ed.cur = { t: "_measure", v0: v, v1: v };
   else if (t === "redact") ed.cur = { t: "_redact", v0: v, v1: v };
@@ -2403,7 +2433,8 @@ ov.addEventListener("pointermove", ev => {
   if (t === "erase") { eraseAt(pt); return; }
   if (!ed.cur) return;
   if (ed.cur.t === "ink") {
-    if (ed.ruler) { const v1 = snapAngle(ed.v0, v); ed.cur.pts = [toPdf(ed.v0), toPdf(v1)]; const L = dist(ed.cur.pts[0], ed.cur.pts[1]); ed.live = { at: v1, txt: fmt(calLen(L)) + " " + S.cal.unit }; }
+    if (ed.ruler) { let v1 = snapAngle(ed.v0, v); const e = nearEnd(v1, pages[ed.i]); ed.snapB = e && !(ed.snapA && e[0] === ed.snapA[0] && e[1] === ed.snapA[1]) ? e : null; if (ed.snapB) v1 = vpPt(ed.vp, ed.snapB);
+      ed.cur.pts = [ed.snapA ? [ed.snapA[0], ed.snapA[1]] : toPdf(ed.v0), ed.snapB ? [ed.snapB[0], ed.snapB[1]] : toPdf(v1)]; const L = dist(ed.cur.pts[0], ed.cur.pts[1]); ed.live = { at: v1, txt: fmt(calLen(L)) + " " + S.cal.unit }; }
     else { const last = ed.cur.pts[ed.cur.pts.length - 1]; if (dist(last, pt) * ed.vp.scale > 1.2) ed.cur.pts.push(pt); }
   } else if (ed.cur.t === "_shape") ed.cur.v1 = ["line", "arrow", "dbl"].includes(ed.shape) ? snapAngle(ed.cur.v0, v) : v;
   else if (ed.cur.t === "_redact" || ed.cur.t === "_crop") ed.cur.v1 = v;
@@ -2835,9 +2866,11 @@ async function sample() {
   for (let i = 0; i < 4; i++) pages.push({ id: nid(), src: s, idx: i, rot: 0, ann: A[i], fav: i === 1 });
   outline.push({ id: nid(), title: "Willkommen", pageId: pages[0].id, level: 0 }, { id: nid(), title: "Versuchsprotokoll", pageId: pages[1].id, level: 0 }, { id: nid(), title: "Messwerte", pageId: pages[1].id, level: 1 }, { id: nid(), title: "Messen", pageId: pages[2].id, level: 0 }, { id: nid(), title: "Formular und Schwärzen", pageId: pages[3].id, level: 0 });
   isSample = false; S.name = "Beispiel"; lsSet("pw_sample_done", true);
-  thumbForRecent = null; await makeRecentThumb(); await persist();
+  thumbForRecent = null; await makeRecentThumb(); await persist(); lsSet("pw_sample_id", curPid);
 }
+async function sampleExists() { try { const sid = lsGet("pw_sample_id", null), rec = (await kvGet("recent")) || []; return rec.some(r => (sid && r.id === sid) || r.name === "Beispiel"); } catch (e) { return false; } }
 async function openSample() {
+  if (await sampleExists()) { toast("Die Beispieldatei gibt es noch – du findest sie unter Dateien."); return; }
   await switchAway(); newProject(); S.cal = { f: 25.4 / 72, unit: "mm", label: "1:1 (Originalgröße)" };
   await sample(); tab = "start"; view = "pages"; renderAll(); toast("Beispieldatei wiederhergestellt – sie liegt jetzt auch wieder unter Dateien.", 3500);
 }
@@ -3179,22 +3212,28 @@ function applyTheme() { const t = lsGet("pw_theme", "system"); if (t === "system
 async function renderSettings() {
   const V = $("v-settings"), theme = lsGet("pw_theme", "system"), reopen = lsGet("pw_reopen", true), h = hist();
   let est = ""; try { const e = await navigator.storage.estimate(); est = kb(e.usage || 0) + " belegt"; } catch (e) {}
+  const sampleThere = await sampleExists();
   V.innerHTML = `<div class="list">
-    <div class="panel warnbox"><b>Kein Ersatz für eine Sicherung</b><span>Die App ist zum Bearbeiten da, nicht zum Aufbewahren. Dokumente liegen nur im Browser-Speicher dieses Geräts – der kann beim Löschen von Websitedaten, beim Entfernen des Home-Bildschirm-Symbols oder bei Speicherknappheit verloren gehen. Wichtige Dateien deshalb immer mit <b>Speichern</b> in der Dateien-App oder iCloud sichern.</span></div>
-    ${iconPanel()}
-    ${updPanel()}
-    <div class="panel"><b>Darstellung</b><div class="chipsel">${[["system", "Wie System"], ["light", "Hell"], ["dark", "Dunkel"]].map(([k, l]) => `<button data-theme="${k}" class="${theme === k ? "on" : ""}">${l}</button>`).join("")}</div>
-      <label class="chk"><input type="checkbox" id="stReopen" ${reopen ? "checked" : ""}> Beim Start das zuletzt geöffnete Dokument laden</label></div>
+    <div class="panel about"><b>Gut zu wissen</b>
+      <div class="warnbox"><b>Kein Ersatz für eine Sicherung</b><span>Die App ist zum Bearbeiten da, nicht zum Aufbewahren. Dokumente liegen nur im Browser-Speicher dieses Geräts – der kann beim Löschen von Websitedaten, beim Entfernen des Home-Bildschirm-Symbols oder bei Speicherknappheit verloren gehen. Wichtige Dateien deshalb immer mit <b>Speichern</b> in der Dateien-App oder iCloud sichern.</span></div>
+      <ul>
+        ${IS_PAGES && !isStandalone() ? "<li>Am besten in Safari öffnen und über „Teilen → Zum Home-Bildschirm“ wie eine App ablegen.</li>" : ""}
+        ${IS_PAGES && /iPhone|iPad|iPod/.test(navigator.userAgent) ? "<li>Die Home-Bildschirm-App hat einen <b>eigenen Speicher</b>, getrennt von Safari. Wer ihr Symbol löscht, löscht auch die darin gespeicherten Dokumente.</li>" : ""}
+        <li><b>Schwärzen</b> entfernt den Text darunter erst beim Speichern endgültig – bis dahin lässt sich alles noch ändern.</li>
+        <li><b>Kopf- und Fußzeile, Papierfarbe und Format</b> gelten für das ganze Dokument und werden beim Speichern fest eingefügt.</li>
+        <li>Große Scans mit <b>Komprimieren</b> (Werkzeuge) verkleinern, bevor du sie verschickst.</li>
+        <li>Texterkennung kann sich irren – erkannten Text bei wichtigen Werten kontrollieren.</li>
+        <li>Unterschriften hier sind einfache Bild-Unterschriften, keine qualifizierte elektronische Signatur.</li>
+      </ul>
+    </div>
     <div class="panel"><b>Eigene Schriften</b><div class="list" id="stFonts">${customFonts.length ? customFonts.map(f => `<div class="item"><div class="grow"><div class="t" style="font-family:'${f.family}',sans-serif">${esc(f.name)}</div></div><button data-delfont="${esc(f.key)}" class="danger" aria-label="Entfernen">✕</button></div>`).join("") : `<p class="hint" style="margin:0">Keine. TTF- oder OTF-Dateien lassen sich hinzufügen.</p>`}</div><button id="stAddFont">+ Schrift hinzufügen</button></div>
     <div class="panel"><b>Unterschriften</b><div class="row" id="stSigs" style="flex-wrap:wrap">${sigs.map((s, k) => `<span class="row" style="gap:4px"><canvas width="180" height="80" style="width:90px;height:40px;background:#fff;border-radius:6px" data-sig="${k}"></canvas><button data-delsig="${k}" class="danger" aria-label="Löschen">✕</button></span>`).join("") || `<p class="hint" style="margin:0">Noch keine gespeichert.</p>`}</div><button id="stAddSig">+ Neue Unterschrift</button></div>
     <div class="panel"><b>Messen</b><span class="hint" style="margin:0">Aktuell: ${esc(S.cal.label)} · ${esc(S.cal.unit)}</span><button id="stCal">Auf Originalgröße (mm) zurücksetzen</button></div>
     <div class="panel"><b>Suchverlauf</b><span class="hint" style="margin:0">${h.length} gespeicherte Begriffe</span><button id="stHist" ${h.length ? "" : "disabled"}>Verlauf löschen</button></div>
-    <div class="panel"><b>Speicher auf diesem Gerät</b><span class="hint" style="margin:0">${est || "Größe unbekannt"}. Dokumente, Schriften und Unterschriften bleiben nur in diesem Browser.</span><button id="stSample">Beispieldatei wiederherstellen</button><button id="stWipe" class="danger">Alle Dokumente löschen</button></div>
     <div class="panel"><b>Anleitung</b><span class="hint" style="margin:0">Alle Funktionen und wie sie arbeiten. Antippen zum Aufklappen.</span>${guideHtml()}<button id="stHelp">Kurzanleitung als Überblick</button></div>
-    <div class="panel about"><b>Über</b>
-      <div style="display:flex;gap:14px;align-items:center"><img src="${ICON_PREV[curIcon()] || ""}" alt="" style="width:56px;height:56px;flex:none"><p class="love">Mit <span aria-label="Herz">❤️</span> gemacht von Kerem</p></div>
-      <dl class="infolist"><dt>App</dt><dd>PDF Werkbank</dd><dt>Version</dt><dd>${APP_VERSION}</dd><dt>Webseite</dt><dd><a href="https://mrkero.github.io/PDF-Werkbank/" target="_blank" rel="noopener noreferrer">mrkero.github.io/PDF-Werkbank</a></dd><dt>Quellcode</dt><dd><a href="https://github.com/mrkero/PDF-Werkbank" target="_blank" rel="noopener noreferrer">github.com/mrkero/PDF-Werkbank</a></dd><dt>Läuft</dt><dd>im Browser, ohne Installation, ohne Konto</dd><dt>Speicher</dt><dd>${est || "unbekannt"}</dd></dl>
-    </div>
+    ${iconPanel()}
+    <div class="panel"><b>Darstellung</b><div class="chipsel">${[["system", "Wie System"], ["light", "Hell"], ["dark", "Dunkel"]].map(([k, l]) => `<button data-theme="${k}" class="${theme === k ? "on" : ""}">${l}</button>`).join("")}</div>
+      <label class="chk"><input type="checkbox" id="stReopen" ${reopen ? "checked" : ""}> Beim Start das zuletzt geöffnete Dokument laden</label></div>
     <div class="panel about"><b>Datenschutz</b>
       <p class="love" style="font-size:1rem">Deine Dokumente verlassen dein iPhone nicht.</p>
       <ul>
@@ -3202,7 +3241,7 @@ async function renderSettings() {
         <li><b>Kein Konto, keine Werbung, kein Tracking,</b> keine Analyse, keine Fehlerberichte, keine Cookies.</li>
         <li><b>Wo deine Daten liegen:</b> nur im Speicher dieser App auf diesem Gerät (IndexedDB und localStorage) – Dokumente, Unterschriften, eigene Schriften, Suchverlauf, Einstellungen.</li>
         <li><b>Passwörter</b> geschützter PDFs werden nur zum Öffnen bzw. Verschlüsseln benutzt und nie gespeichert.</li>
-        <li><b>Löschen:</b> einzelne Dokumente unter Dateien, alles auf einmal mit „Alle Dokumente löschen“ weiter oben.</li>
+        <li><b>Löschen:</b> einzelne Dokumente unter Dateien, alles auf einmal mit „Alle Dokumente löschen“ unter „Speicher auf diesem Gerät“.</li>
       </ul>
       <b style="margin-top:4px">Online-Abfragen</b>${NET_INFO}
     </div>
@@ -3210,13 +3249,11 @@ async function renderSettings() {
       <b>Schriften</b><ul class="links"><li><a href="https://fonts.google.com" target="_blank" rel="noopener noreferrer">Google Fonts</a> – Roboto, Open Sans, Lato, Montserrat, Inter, Noto, Merriweather, EB Garamond, Caveat, Source Sans 3, Poppins; Oberfläche: Bricolage Grotesque, IBM Plex <span class="badge">OFL</span></li><li><a href="https://github.com/liberationfonts/liberation-fonts" target="_blank" rel="noopener noreferrer">Liberation Fonts</a> – Ersatz für Arial, Times New Roman, Courier New <span class="badge">OFL</span></li><li><a href="https://github.com/googlefonts/carlito" target="_blank" rel="noopener noreferrer">Carlito und Caladea</a> – Ersatz für Calibri und Cambria <span class="badge">OFL</span></li><li><a href="https://dejavu-fonts.github.io" target="_blank" rel="noopener noreferrer">DejaVu</a> – Sonderzeichen-Ersatz <span class="badge">Bitstream Vera/frei</span></li><li><a href="https://www.gust.org.pl/projects/e-foundry/latin-modern" target="_blank" rel="noopener noreferrer">Latin Modern</a> – LaTeX-Schrift <span class="badge">GUST</span></li></ul>
       <p class="hint" style="margin:0">Alle Bausteine und Schriften sind freie Software bzw. frei lizenziert. Die Schriften wurden auf die benötigten Zeichen gekürzt.</p>
     </div>
-    <div class="panel about"><b>Gut zu wissen</b>
-      <ul>
-        ${IS_PAGES && !isStandalone() ? "<li>Am besten in Safari öffnen und über „Teilen → Zum Home-Bildschirm“ wie eine App ablegen.</li>" : ""}
-        <li>Wichtige Dokumente zusätzlich mit „Speichern“ in der Dateien-App sichern.</li>
-        <li>Texterkennung kann sich irren – erkannten Text bei wichtigen Werten kontrollieren.</li>
-        <li>Unterschriften hier sind einfache Bild-Unterschriften, keine qualifizierte elektronische Signatur.</li>
-      </ul>
+    <div class="panel"><b>Speicher auf diesem Gerät</b><span class="hint" style="margin:0">${est || "Größe unbekannt"}. Dokumente, Schriften und Unterschriften bleiben nur in diesem Browser.</span>${sampleThere ? `<button id="stSample" disabled>Beispieldatei ist vorhanden</button>` : `<button id="stSample">Beispieldatei wiederherstellen</button>`}<button id="stWipe" class="danger">Alle Dokumente löschen</button></div>
+    ${updPanel()}
+    <div class="panel about"><b>Über</b>
+      <div style="display:flex;gap:14px;align-items:center"><img src="${ICON_PREV[curIcon()] || ""}" alt="" style="width:56px;height:56px;flex:none"><p class="love">Mit <span aria-label="Herz">❤️</span> gemacht von Kerem</p></div>
+      <dl class="infolist"><dt>App</dt><dd>PDF Werkbank</dd><dt>Version</dt><dd>${APP_VERSION}</dd><dt>Webseite</dt><dd><a href="https://mrkero.github.io/PDF-Werkbank/" target="_blank" rel="noopener noreferrer">mrkero.github.io/PDF-Werkbank</a></dd><dt>Quellcode</dt><dd><a href="https://github.com/mrkero/PDF-Werkbank" target="_blank" rel="noopener noreferrer">github.com/mrkero/PDF-Werkbank</a></dd><dt>Läuft</dt><dd>im Browser, ohne Installation, ohne Konto</dd><dt>Speicher</dt><dd>${est || "unbekannt"}</dd></dl>
     </div>
   </div>`;
   V.querySelectorAll("canvas[data-sig]").forEach(c => drawSigPreview(c, sigs[+c.dataset.sig])); updOff();
@@ -3746,7 +3783,7 @@ function installHint() {
   </dl>
   <p class="hint" id="offSt" style="margin:0"></p><div class="row" style="flex-wrap:wrap"><button id="offGo-bb" hidden>Bausteine laden (ca. 21 MB)</button><button id="offGo-fonts" hidden>Schriften laden (ca. 9 MB)</button></div>
   <p class="hint" style="margin:0">Was der Webhoster (z. B. GitHub) dabei sieht: wie bei jeder Webseite deine IP-Adresse, die Uhrzeit und den Gerätetyp – nie den Inhalt deiner Dokumente.</p>`;/*/NET*/
-const APP_VERSION = "2.6 · 03.11.2026";
+const APP_VERSION = "2.7 · 04.11.2026";
 /* Offline-Vorrat (nur GitHub-Pages-Fassung): alle Schriften und die Texterkennung gleich nach dem ersten Öffnen speichern */
 const OFFLINE = /*OFFLINE*/{"v": "pw-assets-1", "files": ["fonts/Caladea-Bold.ttf", "fonts/Caladea-BoldItalic.ttf", "fonts/Caladea-Italic.ttf", "fonts/Caladea-Regular.ttf", "fonts/Carlito-Bold.ttf", "fonts/Carlito-BoldItalic.ttf", "fonts/Carlito-Italic.ttf", "fonts/Carlito-Regular.ttf", "fonts/Caveat-Bold.ttf", "fonts/Caveat-Regular.ttf", "fonts/DejaVuSans-Bold.ttf", "fonts/DejaVuSans-BoldItalic.ttf", "fonts/DejaVuSans-Italic.ttf", "fonts/DejaVuSans-Regular.ttf", "fonts/EBGaramond-Bold.ttf", "fonts/EBGaramond-BoldItalic.ttf", "fonts/EBGaramond-Italic.ttf", "fonts/EBGaramond-Regular.ttf", "fonts/Inter-Bold.ttf", "fonts/Inter-BoldItalic.ttf", "fonts/Inter-Italic.ttf", "fonts/Inter-Regular.ttf", "fonts/LatinModern-Bold.ttf", "fonts/LatinModern-BoldItalic.ttf", "fonts/LatinModern-Italic.ttf", "fonts/LatinModern-Regular.ttf", "fonts/Lato-Bold.ttf", "fonts/Lato-BoldItalic.ttf", "fonts/Lato-Italic.ttf", "fonts/Lato-Regular.ttf", "fonts/LiberationMono-Bold.ttf", "fonts/LiberationMono-BoldItalic.ttf", "fonts/LiberationMono-Italic.ttf", "fonts/LiberationMono-Regular.ttf", "fonts/LiberationSans-Bold.ttf", "fonts/LiberationSans-BoldItalic.ttf", "fonts/LiberationSans-Italic.ttf", "fonts/LiberationSans-Regular.ttf", "fonts/LiberationSerif-Bold.ttf", "fonts/LiberationSerif-BoldItalic.ttf", "fonts/LiberationSerif-Italic.ttf", "fonts/LiberationSerif-Regular.ttf", "fonts/Merriweather-Bold.ttf", "fonts/Merriweather-BoldItalic.ttf", "fonts/Merriweather-Italic.ttf", "fonts/Merriweather-Regular.ttf", "fonts/Montserrat-Bold.ttf", "fonts/Montserrat-BoldItalic.ttf", "fonts/Montserrat-Italic.ttf", "fonts/Montserrat-Regular.ttf", "fonts/NotoSans-Bold.ttf", "fonts/NotoSans-BoldItalic.ttf", "fonts/NotoSans-Italic.ttf", "fonts/NotoSans-Regular.ttf", "fonts/NotoSerif-Bold.ttf", "fonts/NotoSerif-BoldItalic.ttf", "fonts/NotoSerif-Italic.ttf", "fonts/NotoSerif-Regular.ttf", "fonts/OpenSans-Bold.ttf", "fonts/OpenSans-BoldItalic.ttf", "fonts/OpenSans-Italic.ttf", "fonts/OpenSans-Regular.ttf", "fonts/Poppins-Bold.ttf", "fonts/Poppins-BoldItalic.ttf", "fonts/Poppins-Italic.ttf", "fonts/Poppins-Regular.ttf", "fonts/Roboto-Bold.ttf", "fonts/Roboto-BoldItalic.ttf", "fonts/Roboto-Italic.ttf", "fonts/Roboto-Regular.ttf", "fonts/SourceSans3-Bold.ttf", "fonts/SourceSans3-BoldItalic.ttf", "fonts/SourceSans3-Italic.ttf", "fonts/SourceSans3-Regular.ttf", "lib/mammoth.browser.min.js", "lib/tesseract.min.js", "ocr/lang/deu.traineddata.b64.txt", "ocr/lang/eng.traineddata.b64.txt", "ocr/tesseract-core-lstm.wasm.js", "ocr/tesseract-core-relaxedsimd-lstm.wasm.js", "ocr/tesseract-core-simd-lstm.wasm.js", "ocr/worker-wrap.js", "ocr/worker.min.js"]}/*/OFFLINE*/;
 // Gruppen: "bb" = Bausteine (Texterkennung, Word-Import), "fonts" = Schriften
@@ -4005,7 +4042,7 @@ async function docInfo() {
 $("bDocInfo").onclick = docInfo;
 
 /* ======================= Wischen zwischen den Reitern ======================= */
-const TAB_ORDER = ["start", "files", "recent", "tools", "settings"];
+const TAB_ORDER = ["recent", "files", "start", "tools", "settings"];
 (() => {
   const m = $("mainEl"); let st = null;
   m.addEventListener("touchstart", e => {
