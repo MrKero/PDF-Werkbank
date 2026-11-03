@@ -1,0 +1,10 @@
+Mitgelieferte Schriften der PDF Werkbank (auf benötigte Zeichen gekürzt, variable Schriften in feste Schnitte umgewandelt)
+
+SIL Open Font License 1.1: Liberation Sans/Serif/Mono, Carlito, Caladea, Roboto, Open Sans, Lato, Montserrat,
+Source Sans 3, Inter, Poppins, Noto Sans, Noto Serif, Merriweather, EB Garamond, Caveat
+DejaVu Sans: Bitstream Vera Fonts Copyright / DejaVu changes are in public domain
+Latin Modern Roman: GUST Font License (GFL)
+
+Quellen: Google Fonts (github.com/google/fonts), Liberation Fonts, Crosextra (Carlito/Caladea), DejaVu, GUST (Latin Modern).
+
+Oberflächenschriften: Bricolage Grotesque, IBM Plex Sans, IBM Plex Mono (SIL Open Font License 1.1, über Fontsource)
