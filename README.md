@@ -2,6 +2,8 @@
 
 Ein kostenloser PDF-Editor für iPhone, iPad und jeden Browser. Bearbeiten, unterschreiben, scannen, schwärzen, Formulare ausfüllen, zusammenfügen und umwandeln – **alles läuft auf dem Gerät**. Es gibt keinen Server, kein Konto und keinen Upload.
 
+**Zur App:** https://mrkero.github.io/PDF-Werkbank/
+
 Mit ❤️ gemacht von Kerem.
 
 ---
@@ -48,27 +50,7 @@ Mit ❤️ gemacht von Kerem.
 
 ---
 
-## Auf GitHub Pages veröffentlichen
-
-1. Neues Repository `PDF-Werkbank` anlegen (Groß-/Kleinschreibung zählt – sie steht später in der Adresse).
-2. Den **Inhalt** dieses Ordners hochladen (`index.html` muss im Hauptverzeichnis liegen, inklusive der Ordner `lib`, `fonts`, `ocr`, `icons` und der Datei `.nojekyll`).
-   - Im Browser: *Add file → Upload files*, alle Dateien und Ordner hineinziehen, *Commit changes*. GitHub nimmt pro Upload höchstens 100 Dateien – also in zwei Durchgängen hochladen (z. B. erst `fonts`, dann den Rest).
-   - Oder per Git:
-     ```bash
-     git init
-     git add .
-     git commit -m "PDF Werkbank"
-     git branch -M main
-     git remote add origin https://github.com/mrkero/PDF-Werkbank.git
-     git push -u origin main
-     ```
-3. Im Repository: *Settings → Pages → Build and deployment → Source: Deploy from a branch*, Branch `main`, Ordner `/ (root)`, *Save*.
-4. Nach ein bis zwei Minuten ist die App erreichbar unter
-   **https://mrkero.github.io/PDF-Werkbank/**
-
-> Die versteckte Datei `.nojekyll` sorgt dafür, dass GitHub die Dateien unverändert ausliefert. Auf dem Mac wird sie im Finder erst mit `⌘ + ⇧ + .` sichtbar.
-
-### Auf dem iPhone wie eine App nutzen
+## Auf dem iPhone wie eine App nutzen
 
 1. Seite in **Safari** öffnen.
 2. Optional: unter **Einstellungen → App-Symbol** eines der vier Symbole wählen (OLED-Schwarz, Linien, Gold, Eselsohr).
@@ -78,16 +60,12 @@ Die App startet dann im Vollbild mit dem gewählten Symbol und läuft nach dem e
 
 > **Wichtig:** Die Home-Bildschirm-App hat auf iOS einen **eigenen Speicher**, getrennt von Safari. Dokumente, die du in Safari angelegt hast, siehst du dort nicht – und umgekehrt. Wer das Symbol vom Home-Bildschirm löscht, löscht damit auch die darin gespeicherten Dokumente. Ein Symbolwechsel wird auf iOS erst sichtbar, wenn man die App neu zum Home-Bildschirm hinzufügt – vorher wichtige Dokumente sichern.
 
-### Lokal ausprobieren
+## Lokal ausprobieren
 
 ```bash
 python3 -m http.server 8000
 ```
 Dann `http://localhost:8000` öffnen. Ein Doppelklick auf `index.html` reicht nicht, weil Browser dann das Laden von Schriften und der Texterkennung blockieren.
-
-### Neue Version veröffentlichen
-
-Dateien ersetzen und in `sw.js` den Wert `VERSION` erhöhen (z. B. von `pdf-werkbank-2.4` auf `pdf-werkbank-2.5`), damit Geräte die neue Version statt der zwischengespeicherten laden.
 
 ---
 
@@ -110,16 +88,6 @@ Die App ist so gebaut, dass sie **ohne fremde Dienste** auskommt.
 | Bei späteren Starts | kurze Prüfung, ob es eine neue Version gibt |
 | Speichern | nichts – die Datei entsteht auf dem Gerät |
 | Links in den Einstellungen | fremde Seiten öffnen sich nur beim Antippen (ohne Referrer) |
-
-### Kann jemand von außen Daten abfragen?
-
-Nein. Die App ist eine statische Webseite ohne Server und ohne offenen Port – es gibt nichts, an das eine Anfrage aus dem Netz gerichtet werden könnte. Andere Webseiten kommen wegen der Same-Origin-Regel des Browsers nicht an ihren Speicher. Und selbst ein Fehler im Code könnte keine Daten wegschicken: Die Content-Security-Policy erlaubt Verbindungen nur zur eigenen Adresse, und GitHub Pages nimmt dort keine Daten entgegen.
-
-Hinweis: Alle Pages-Projekte unter `mrkero.github.io` teilen sich denselben Browser-Speicherbereich. Das betrifft nur eigene Projekte – fremder Code kann dort nicht liegen.
-
-### Was, wenn ein Baustein nicht mehr verfügbar ist?
-
-Nichts. Alle Bausteine liegen in festen Versionen in diesem Repository (`lib/`, `fonts/`, `ocr/`) – es wird nichts von CDNs nachgeladen, das verschwinden oder sich ändern könnte. Die App läuft auch auf jedem anderen Webspace oder lokal (`python3 -m http.server`).
 
 ## Aufbau
 
