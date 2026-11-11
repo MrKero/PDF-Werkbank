@@ -124,6 +124,14 @@ header{padding-top:env(safe-area-inset-top,0px)}
 .offbar{position:fixed;left:50%;transform:translateX(-50%);z-index:30;width:min(92vw,420px);background:var(--surface);color:var(--ink);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:12px;padding:9px 12px 10px;font-size:.84rem;display:grid;gap:7px;transition:opacity .35s;pointer-events:none}
 .offbar .bar{display:block;height:5px;border-radius:3px;background:var(--line);overflow:hidden}.offbar .bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
 .offbar.ok .bar i{background:#1f9d55}.offbar.out{opacity:0}
+.selinfo{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:5;width:min(92%,420px);background:color-mix(in srgb,var(--surface) 88%,transparent);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 30px rgba(15,25,40,.2);padding:11px 40px 10px 14px;display:grid;gap:6px;font-size:.86rem;-webkit-user-select:none;user-select:none}
+.selinfo .f1{font-weight:700;font-size:.98rem}
+.selinfo .chips2{display:flex;flex-wrap:wrap;gap:5px}.selinfo .chips2 span{display:inline-flex;align-items:center;gap:5px;background:var(--chip);border-radius:999px;padding:2px 9px;font-size:.8rem}
+.selinfo .chips2 i{width:11px;height:11px;border-radius:50%;border:1px solid var(--line);display:inline-block}
+.selinfo .raw{font-family:"IBM Plex Mono",monospace;font-size:.74rem;color:var(--muted);word-break:break-all}
+.selinfo .cnt{font-size:.76rem;color:var(--muted)}
+.selinfo ul{margin:0;padding-left:18px;display:grid;gap:2px}
+.selinfo .x{position:absolute;top:6px;right:6px;width:28px;height:28px;min-height:0;padding:0;border-radius:50%;background:var(--chip);font-size:.8rem}
 .tl{position:absolute;inset:0;overflow:hidden;line-height:1;z-index:1;-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 .tl span{position:absolute;white-space:pre;color:transparent;transform-origin:0 0;font-family:sans-serif;cursor:text;line-height:1;padding:.14em 0 .3em}
 .tl br{line-height:0}
@@ -378,6 +386,7 @@ catch(e){document.write('<link rel="apple-touch-icon" href="icons/oled-180.png">
 <section class="rd" id="rd" hidden aria-label="Lesen">
   <div class="top"><button id="rdClose">Schließen</button><div class="t tap" id="rdTitle" role="button" tabindex="0" title="Ganzen Namen zeigen">Seite 1</div><button id="rdZo" aria-label="Kleiner">−</button><button id="rdZi" aria-label="Größer">+</button><button class="primary" id="rdEdit">Bearbeiten</button></div>
   <div class="rdscroll" id="rdScroll"><div class="rdinner" id="rdInner"></div></div>
+  <div class="selinfo" id="selInfo" hidden role="status" aria-live="polite"></div>
 </section>
 <!-- Editor -->
 <section class="ed" id="ed" hidden aria-label="Seite bearbeiten">
@@ -3508,7 +3517,7 @@ function rdZoomBy(f) {
   rd.zoom = Math.max(1, Math.min(5, rd.zoom * f)); if (rd.zoom < 1.05) rd.zoom = 1; rdLayout();
   const k = rd.zoom / old; sc.scrollLeft = cx * k - sc.clientWidth / 2; sc.scrollTop = cy * k - sc.clientHeight / 2;
 }
-$("rdClose").onclick = () => { $("rd").hidden = true; rd.token++; if (rd.io) rd.io.disconnect(); $("rdInner").innerHTML = ""; };
+$("rdClose").onclick = () => { $("rd").hidden = true; rd.token++; if (rd.io) rd.io.disconnect(); $("rdInner").innerHTML = ""; $("selInfo").hidden = true; };
 $("rdEdit").onclick = () => { const i = rd.cur; $("rdClose").onclick(); ed.fromReader = true; openEditor(i); };
 /* ---------- Text markieren und kopieren: unsichtbare Textebene über der Seite ---------- */
 const tlCtx = document.createElement("canvas").getContext("2d");
@@ -3520,11 +3529,11 @@ async function buildTextLayer(d, p) {
   for (const a of p.ann) if (a.t === "text" && a.txt) {
     const ang = (a.r || 0) * Math.PI / 180, lines = String(a.txt).split("\n");
     lines.forEach((l, i) => { tlCtx.font = fontCss(a.font, a.s); const off = i * a.s * 1.2;
-      items.push({ str: l, eol: true, x: a.p[0] + Math.sin(ang) * off, y: a.p[1] - Math.cos(ang) * off, w: tlCtx.measureText(l).width, size: a.s, ang, fam: "Helvetica" }); });
+      items.push({ str: l, eol: true, x: a.p[0] + Math.sin(ang) * off, y: a.p[1] - Math.cos(ang) * off, w: tlCtx.measureText(l).width, size: a.s, ang, fam: "Helvetica", own: { font: a.font, c: a.c } }); });
   }
   if (!items.length) return;
   d._vpW = vp.width; d.style.setProperty("--k", (parseFloat(d.style.width) || vp.width) / vp.width);
-  const tl = document.createElement("div"); tl.className = "tl";
+  const tl = document.createElement("div"); tl.className = "tl"; tl._pg = pg; tl._pk = p.src + ":" + p.idx; tl._rot = (pg.rotate + p.rot) % 360;
   const frag = document.createDocumentFragment();
   // Lückenlos: jedes Stück reicht bis zum nächsten Stück derselben Zeile (inkl. Leerzeichen), damit der
   // Auswahlgriff auf dem iPhone nie ins Leere fällt. Stücke einer Zeile werden zusammengefasst.
@@ -3535,13 +3544,13 @@ async function buildTextLayer(d, p) {
   for (const it of words) { const L = lines[lines.length - 1], last = L && L[L.length - 1]; if (last && !last.eol && sameLine(last, it)) L.push(it); else lines.push([it]); }
   for (const L of lines) {
     const f = L[0], c = Math.cos(f.ang), sn = Math.sin(f.ang), last = L[L.length - 1];
-    let txt = "";
-    L.forEach((it, j) => { txt += it.str; const nx = L[j + 1]; if (nx) { const gap = (nx.x - it.x) * c + (nx.y - it.y) * sn - it.w; if (gap > 0.12 * it.size && !/\s$/.test(it.str) && !/^\s/.test(nx.str)) txt += " "; } });
+    let txt = ""; const pieces = [];
+    L.forEach((it, j) => { pieces.push({ a: txt.length, b: txt.length + it.str.length, it }); txt += it.str; const nx = L[j + 1]; if (nx) { const gap = (nx.x - it.x) * c + (nx.y - it.y) * sn - it.w; if (gap > 0.12 * it.size && !/\s$/.test(it.str) && !/^\s/.test(nx.str)) txt += " "; } });
     const width = Math.max(1, (last.x - f.x) * c + (last.y - f.y) * sn + last.w);
     const [x0, y0] = vp.convertToViewportPoint(f.x, f.y), [x1, y1] = vp.convertToViewportPoint(f.x + c, f.y + sn);
     const rot = Math.atan2(y1 - y0, x1 - x0), sz = Math.max(1, Math.max(...L.map(it => it.size)));
     tlCtx.font = sz + "px sans-serif"; const mw = tlCtx.measureText(txt).width || 1, sx = Math.max(0.05, Math.min(20, width / mw));
-    const sp = document.createElement("span"); sp.textContent = txt;
+    const sp = document.createElement("span"); sp.textContent = txt; sp._pieces = pieces;
     sp.style.cssText = `left:${(x0 / vp.width * 100).toFixed(3)}%;top:${(y0 / vp.height * 100).toFixed(3)}%;font-size:calc(var(--k) * ${sz.toFixed(2)}px);transform:rotate(${rot.toFixed(4)}rad) translateY(-1em) scaleX(${sx.toFixed(4)})`;
     frag.appendChild(sp); frag.appendChild(document.createElement("br"));
   }
@@ -3552,6 +3561,89 @@ async function buildTextLayer(d, p) {
   if (!lsGet("pw_sel_hint", false)) { lsSet("pw_sel_hint", true); toast(matchMedia("(pointer: coarse)").matches ? "Tipp: Text lange gedrückt halten, um ihn zu markieren und zu kopieren." : "Tipp: Text mit der Maus markieren und mit Strg+C kopieren.", 3500); }
 }
 
+/* ---------- Textinfo zur Auswahl: Schrift, Größe, Stil, Farbe ---------- */
+function cleanFontName(n) { return String(n || "").replace(/^[A-Z]{6}\+/, "").replace(/[,_]/g, "-"); }
+function fontStyleOf(name, fo) {
+  const n = String(name || "").toLowerCase(), st = [];
+  const w = /black|heavy/.test(n) ? "Extrafett" : /extrabold|ultrabold/.test(n) ? "Extrafett" : /semibold|demibold|demi\b/.test(n) ? "Halbfett" : /bold|-bd\b|,bold/.test(n) || (fo && (fo.bold || fo.black)) ? "Fett" : /medium/.test(n) ? "Medium" : /light|thin/.test(n) ? "Leicht" : "";
+  if (w) st.push(w);
+  if (/italic|oblique|kursiv|-it\b|,it\b/.test(n) || (fo && fo.italic)) st.push("Kursiv");
+  return st.length ? st.join(" ") : "Normal";
+}
+function familyOf(name) {
+  let n = cleanFontName(name).split("-")[0].replace(/(PS)?MT$/, "").replace(/PS$/, "");
+  n = n.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2").trim();
+  return n || "Unbekannt";
+}
+function pieceInfo(it, pg) {
+  if (it.own) { const k = it.own.font || "Helvetica"; return { fam: fontLabel(k), style: /Bold|Fett/i.test(k) ? (/Italic|Oblique/i.test(k) ? "Fett Kursiv" : "Fett") : /Italic|Oblique/i.test(k) ? "Kursiv" : "Normal", raw: "eigenes Textfeld", size: it.size, color: it.own.c, emb: null }; }
+  if (it.ocr) return { fam: "Erkannter Text", style: "–", raw: "Texterkennung, keine Schriftangabe", size: it.size, emb: null, ocr: true };
+  let fo = null; try { if (it.fn && pg && pg.commonObjs.has(it.fn)) fo = pg.commonObjs.get(it.fn); } catch (e) { }
+  const raw = fo && fo.name ? fo.name : (it.fn || "");
+  return { fam: fo && fo.name ? familyOf(fo.name) : it.fam === "Times-Roman" ? "Serifenschrift" : it.fam === "Courier" ? "Festbreitenschrift" : "Serifenlose Schrift", style: fontStyleOf(raw, fo), raw: cleanFontName(raw), size: it.size, emb: fo ? !fo.missingFile : null };
+}
+// Textfarbe: kleinen Ausschnitt der Seite scharf (4-fach) rendern und die Kernpixel der Buchstaben mitteln
+const colorCache = new Map();
+async function textColorOf(it, tl) {
+  if (it.own) return it.own.c || null; if (it.ocr || !tl._pg) return null;
+  const key = tl._pk + ":" + it.x + ":" + it.y; if (colorCache.has(key)) return colorCache.get(key);
+  let res = null;
+  try {
+    const pg = tl._pg, vp = pg.getViewport({ scale: 4, rotation: tl._rot || 0 });
+    const r = itemRect(it, 0, Math.max(1, it.str.length)), q = vp.convertToViewportRectangle(r);
+    const x0 = Math.floor(Math.min(q[0], q[2])), y0 = Math.floor(Math.min(q[1], q[3])), w = Math.min(1600, Math.ceil(Math.abs(q[2] - q[0]))), h = Math.min(600, Math.ceil(Math.abs(q[3] - q[1])));
+    if (w > 0 && h > 0) {
+      const c = document.createElement("canvas"); c.width = w; c.height = h; const ctx = c.getContext("2d", { willReadFrequently: true });
+      ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, h);
+      await pg.render({ canvasContext: ctx, viewport: vp, transform: [1, 0, 0, 1, -x0, -y0], annotationMode: 0 }).promise;
+      const d = ctx.getImageData(0, 0, w, h).data, cnt = new Map();
+      for (let i = 0; i < d.length; i += 4) { const k = (d[i] >> 3) << 10 | (d[i + 1] >> 3) << 5 | (d[i + 2] >> 3); cnt.set(k, (cnt.get(k) || 0) + 1); }
+      const bg = [...cnt.entries()].sort((a, b) => b[1] - a[1])[0][0], bgc = [(bg >> 10 & 31) * 8 + 4, (bg >> 5 & 31) * 8 + 4, (bg & 31) * 8 + 4];
+      const dist = i => Math.abs(d[i] - bgc[0]) + Math.abs(d[i + 1] - bgc[1]) + Math.abs(d[i + 2] - bgc[2]);
+      let maxD = 0; for (let i = 0; i < d.length; i += 4) maxD = Math.max(maxD, dist(i));
+      if (maxD >= 90) { const acc = [0, 0, 0]; let n = 0; for (let i = 0; i < d.length; i += 4) if (dist(i) >= 0.9 * maxD) { acc[0] += d[i]; acc[1] += d[i + 1]; acc[2] += d[i + 2]; n++; }
+        res = "#" + acc.map(v => Math.round(v / n).toString(16).padStart(2, "0")).join(""); }
+      c.width = c.height = 0;
+    }
+  } catch (e) { res = null; }
+  colorCache.set(key, res); return res;
+}
+let selInfoT = 0, selInfoN = 0;
+function selInfoUpdate() {
+  clearTimeout(selInfoT); selInfoT = setTimeout(() => {
+    const box = $("selInfo"), sel = document.getSelection();
+    if ($("rd").hidden || !sel || !sel.rangeCount || sel.isCollapsed) { box.hidden = true; return; }
+    const r = sel.getRangeAt(0), fonts = new Map(); let chars = 0, text = "", colorPiece = null;
+    document.querySelectorAll("#rdInner .tl").forEach(tl => {
+      if (!r.intersectsNode(tl)) return;
+      tl.querySelectorAll("span").forEach(sp => {
+        if (!sp._pieces || !r.intersectsNode(sp)) return; const tn = sp.firstChild; if (!tn) return;
+        const a = r.startContainer === tn ? r.startOffset : r.startContainer === sp ? 0 : (r.comparePoint(tn, 0) >= 0 ? 0 : tn.length);
+        const b = r.endContainer === tn ? r.endOffset : r.endContainer === sp ? tn.length : (r.comparePoint(tn, tn.length) <= 0 ? tn.length : 0);
+        if (b <= a) return; text += tn.data.slice(a, b) + " ";
+        for (const pc of sp._pieces) { const lo = Math.max(a, pc.a), hi = Math.min(b, pc.b); if (hi <= lo) continue;
+          const inf = pieceInfo(pc.it, tl._pg), key = inf.fam + "|" + inf.style + "|" + Math.round(inf.size * 2) / 2;
+          const e = fonts.get(key) || Object.assign({ n: 0 }, inf); e.n += hi - lo; fonts.set(key, e); chars += hi - lo; if (!colorPiece) colorPiece = [pc.it, tl]; }
+      });
+    });
+    if (!fonts.size) { box.hidden = true; return; }
+    const list = [...fonts.values()].sort((x, y) => y.n - x.n), top = list[0];
+    const words = (text.match(/[\p{L}\p{N}]+/gu) || []).length;
+    const pt = v => (Math.round(v * 2) / 2).toLocaleString("de-DE") + " pt";
+    const col = top.color || null;
+    let h = `<button class="x" id="siClose" aria-label="Schließen">✕</button>`;
+    if (list.length === 1) {
+      h += `<div class="f1">${esc(top.fam)}</div><div class="chips2"><span>${esc(top.style)}</span><span>${pt(top.size)}</span><span id="siCol"${col || (colorPiece && !top.ocr) ? "" : " hidden"}><i style="background:${col || "transparent"}"></i>${col ? col.toUpperCase() : "Farbe …"}</span>${top.emb === true ? "<span>eingebettet</span>" : top.emb === false ? (/^(Times|Helvetica|Courier|Symbol|ZapfDingbats)/i.test(top.raw) ? "<span>PDF-Standardschrift</span>" : "<span>nicht eingebettet</span>") : ""}</div>${top.raw && top.raw !== top.fam ? `<div class="raw">${esc(top.raw)}</div>` : ""}`;
+    } else {
+      h += `<div class="f1">${list.length} Schriften in der Auswahl</div><ul>${list.slice(0, 4).map(f => `<li><b>${esc(f.fam)}</b> · ${esc(f.style)} · ${pt(f.size)}</li>`).join("")}${list.length > 4 ? `<li>und ${list.length - 4} weitere</li>` : ""}</ul>`;
+    }
+    h += `<div class="cnt">${words} ${words === 1 ? "Wort" : "Wörter"} · ${chars} Zeichen</div>`;
+    box.innerHTML = h; box.hidden = false;
+    if (list.length === 1 && !col && colorPiece) { const mine = ++selInfoN; textColorOf(colorPiece[0], colorPiece[1]).then(c => { const el = $("siCol"); if (!el || mine !== selInfoN) return; if (!c) { el.hidden = true; return; } el.innerHTML = `<i style="background:${c}"></i>${c.toUpperCase()}`; }); }
+    $("siClose").onclick = () => { box.hidden = true; try { document.getSelection().removeAllRanges(); } catch (e) { } };
+  }, 180);
+}
+document.addEventListener("selectionchange", selInfoUpdate);
 let tlPrevRange = null;
 document.addEventListener("selectionchange", () => {
   const sel = document.getSelection(), layers = document.querySelectorAll(".tl");
@@ -3783,7 +3875,7 @@ function installHint() {
   </dl>
   <p class="hint" id="offSt" style="margin:0"></p><div class="row" style="flex-wrap:wrap"><button id="offGo-bb" hidden>Bausteine laden (ca. 21 MB)</button><button id="offGo-fonts" hidden>Schriften laden (ca. 9 MB)</button></div>
   <p class="hint" style="margin:0">Was der Webhoster (z. B. GitHub) dabei sieht: wie bei jeder Webseite deine IP-Adresse, die Uhrzeit und den Gerätetyp – nie den Inhalt deiner Dokumente.</p>`;/*/NET*/
-const APP_VERSION = "2.7 · 04.11.2026";
+const APP_VERSION = "2.8 · 11.11.2026";
 /* Offline-Vorrat (nur GitHub-Pages-Fassung): alle Schriften und die Texterkennung gleich nach dem ersten Öffnen speichern */
 const OFFLINE = /*OFFLINE*/{"v": "pw-assets-1", "files": ["fonts/Caladea-Bold.ttf", "fonts/Caladea-BoldItalic.ttf", "fonts/Caladea-Italic.ttf", "fonts/Caladea-Regular.ttf", "fonts/Carlito-Bold.ttf", "fonts/Carlito-BoldItalic.ttf", "fonts/Carlito-Italic.ttf", "fonts/Carlito-Regular.ttf", "fonts/Caveat-Bold.ttf", "fonts/Caveat-Regular.ttf", "fonts/DejaVuSans-Bold.ttf", "fonts/DejaVuSans-BoldItalic.ttf", "fonts/DejaVuSans-Italic.ttf", "fonts/DejaVuSans-Regular.ttf", "fonts/EBGaramond-Bold.ttf", "fonts/EBGaramond-BoldItalic.ttf", "fonts/EBGaramond-Italic.ttf", "fonts/EBGaramond-Regular.ttf", "fonts/Inter-Bold.ttf", "fonts/Inter-BoldItalic.ttf", "fonts/Inter-Italic.ttf", "fonts/Inter-Regular.ttf", "fonts/LatinModern-Bold.ttf", "fonts/LatinModern-BoldItalic.ttf", "fonts/LatinModern-Italic.ttf", "fonts/LatinModern-Regular.ttf", "fonts/Lato-Bold.ttf", "fonts/Lato-BoldItalic.ttf", "fonts/Lato-Italic.ttf", "fonts/Lato-Regular.ttf", "fonts/LiberationMono-Bold.ttf", "fonts/LiberationMono-BoldItalic.ttf", "fonts/LiberationMono-Italic.ttf", "fonts/LiberationMono-Regular.ttf", "fonts/LiberationSans-Bold.ttf", "fonts/LiberationSans-BoldItalic.ttf", "fonts/LiberationSans-Italic.ttf", "fonts/LiberationSans-Regular.ttf", "fonts/LiberationSerif-Bold.ttf", "fonts/LiberationSerif-BoldItalic.ttf", "fonts/LiberationSerif-Italic.ttf", "fonts/LiberationSerif-Regular.ttf", "fonts/Merriweather-Bold.ttf", "fonts/Merriweather-BoldItalic.ttf", "fonts/Merriweather-Italic.ttf", "fonts/Merriweather-Regular.ttf", "fonts/Montserrat-Bold.ttf", "fonts/Montserrat-BoldItalic.ttf", "fonts/Montserrat-Italic.ttf", "fonts/Montserrat-Regular.ttf", "fonts/NotoSans-Bold.ttf", "fonts/NotoSans-BoldItalic.ttf", "fonts/NotoSans-Italic.ttf", "fonts/NotoSans-Regular.ttf", "fonts/NotoSerif-Bold.ttf", "fonts/NotoSerif-BoldItalic.ttf", "fonts/NotoSerif-Italic.ttf", "fonts/NotoSerif-Regular.ttf", "fonts/OpenSans-Bold.ttf", "fonts/OpenSans-BoldItalic.ttf", "fonts/OpenSans-Italic.ttf", "fonts/OpenSans-Regular.ttf", "fonts/Poppins-Bold.ttf", "fonts/Poppins-BoldItalic.ttf", "fonts/Poppins-Italic.ttf", "fonts/Poppins-Regular.ttf", "fonts/Roboto-Bold.ttf", "fonts/Roboto-BoldItalic.ttf", "fonts/Roboto-Italic.ttf", "fonts/Roboto-Regular.ttf", "fonts/SourceSans3-Bold.ttf", "fonts/SourceSans3-BoldItalic.ttf", "fonts/SourceSans3-Italic.ttf", "fonts/SourceSans3-Regular.ttf", "lib/mammoth.browser.min.js", "lib/tesseract.min.js", "ocr/lang/deu.traineddata.b64.txt", "ocr/lang/eng.traineddata.b64.txt", "ocr/tesseract-core-lstm.wasm.js", "ocr/tesseract-core-relaxedsimd-lstm.wasm.js", "ocr/tesseract-core-simd-lstm.wasm.js", "ocr/worker-wrap.js", "ocr/worker.min.js"]}/*/OFFLINE*/;
 // Gruppen: "bb" = Bausteine (Texterkennung, Word-Import), "fonts" = Schriften
@@ -3875,7 +3967,7 @@ const GUIDE = [
   ["Messen", `<p>Ohne Einstellung misst die App in Originalgröße (mm). <b>Kalibrieren</b>: eine Strecke bekannter Länge ziehen und den echten Wert eingeben. <b>Maßstab 1:n</b> für Pläne. <b>Verhältnis</b>: die erste Strecke ist die Referenz, weitere zeigen das Vielfache.</p>`],
   ["Zusammenfügen, Aufteilen, Umwandeln", `<p><b>Zusammenfügen</b>: unter Dateien „Mehrere auswählen“, Dokumente in der gewünschten Reihenfolge antippen. <b>Aufteilen</b> nach Seitenzahl oder Kapiteln (ZIP). <b>PDF zu Bildern</b> (JPG/PNG), <b>PDF zu Word</b> (Text und Absätze), <b>Seiten pro Blatt</b> (2–9), <b>Zuschneiden</b>, <b>Kopf- und Fußzeile</b> mit {seite}, {seiten}, {datum}, {name}, <b>Vergleichen</b> zweier Fassungen und <b>Reparieren</b> beschädigter PDFs findest du unter Werkzeuge. Beschädigte Dateien werden beim Öffnen automatisch repariert.</p>`],
   ["Schutz und Passwörter", `<p>Geschützte PDFs öffnest du mit dem Passwort; danach wird die Sperre beim Speichern entfernt. <b>Mit Passwort</b> unter Werkzeuge speichert mit AES-256-Verschlüsselung.</p>`],
-  ["Text markieren und zoomen", `<p><b>Markieren:</b> Im Lesemodus (Seite antippen) den Text lange gedrückt halten – dann wie gewohnt die Auswahl ziehen und „Kopieren“ antippen. Am PC einfach mit der Maus markieren und <b>Strg + C</b> drücken. Das klappt mit dem Text der PDF, mit erkanntem Text (Texterkennung) und mit eigenen Textfeldern. Bei reinen Bild-Scans vorher „Text erkennen“ laufen lassen.</p><p><b>Zoomen:</b> Auf dem iPhone mit zwei Fingern. Am PC mit <b>Strg + Mausrad</b> (oder Trackpad-Geste) – im Lesemodus und im Editor wird an der Mausposition vergrößert, auf der Startseite ändert sich die Vorschaugröße. <b>Strg + Plus/Minus</b> zoomt in Schritten, <b>Strg + 0</b> setzt zurück.</p>`],
+  ["Text markieren und zoomen", `<p><b>Markieren:</b> Im Lesemodus (Seite antippen) den Text lange gedrückt halten – dann wie gewohnt die Auswahl ziehen und „Kopieren“ antippen. Am PC einfach mit der Maus markieren und <b>Strg + C</b> drücken. Das klappt mit dem Text der PDF, mit erkanntem Text (Texterkennung) und mit eigenen Textfeldern. Bei reinen Bild-Scans vorher „Text erkennen“ laufen lassen.</p><p><b>Textinfo:</b> Sobald Text markiert ist, zeigt eine Karte unten Schrift, Stil (Fett, Kursiv …), Größe in Punkt, Farbe und ob die Schrift in der PDF eingebettet ist – bei gemischter Auswahl alle Schriften. Dazu Wörter und Zeichen.</p><p><b>Zoomen:</b> Auf dem iPhone mit zwei Fingern. Am PC mit <b>Strg + Mausrad</b> (oder Trackpad-Geste) – im Lesemodus und im Editor wird an der Mausposition vergrößert, auf der Startseite ändert sich die Vorschaugröße. <b>Strg + Plus/Minus</b> zoomt in Schritten, <b>Strg + 0</b> setzt zurück.</p>`],
   ["Auf dem iPhone", `<p>Die App ist fürs iPhone gemacht. In der eigenen Fassung (GitHub Pages) in Safari öffnen → <b>Teilen</b> → <b>Zum Home-Bildschirm</b>. Dann startet sie im Vollbild mit eigenem Symbol und funktioniert auch ohne Internet. Das Symbol wählst du in den Einstellungen.</p><p>Speichern öffnet das iPhone-Menü: „In Dateien sichern“ legt die PDF in der Dateien-App ab, oder du teilst sie direkt per Mail oder Nachricht.</p>`],
   ["Speicher", `<p>Dokumente, Schriften, Unterschriften und Einstellungen liegen nur auf diesem Gerät. Nichts wird hochgeladen. Achtung: Die App auf dem Home-Bildschirm und Safari haben getrennte Speicher, und wenn du das Home-Bildschirm-Symbol löschst, löscht iOS auch dessen Dokumente. Wichtige Dateien deshalb zusätzlich mit „Speichern“ in der Dateien-App sichern.</p>`]
 ];

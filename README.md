@@ -18,7 +18,7 @@ Mit ❤️ gemacht von Kerem.
 
 **Seiten**
 - Übersicht mit Formatangabe (z. B. A4) und Infos zu jeder Seite
-- Lesemodus mit Zoom (zwei Finger, am PC Strg + Mausrad) und markierbarem Text zum Kopieren
+- Lesemodus mit Zoom (zwei Finger, am PC Strg + Mausrad) und markierbarem Text zum Kopieren – beim Markieren zeigt eine Karte Schrift, Stil, Größe, Farbe und Wort-/Zeichenzahl
 - Drehen, duplizieren, sortieren per Ziehen, löschen, umkehren, extrahieren
 - Neue Seiten: leer, liniert, kariert, Punktraster, Millimeterpapier, Notenlinien, Cornell – in DIN A3–A6, Letter und Legal, im Hoch- oder Querformat (auch einzeln zwischen anderen Seiten), mit wählbarer Papierfarbe
 - Favoriten und Gliederung (wird als Lesezeichen in die PDF geschrieben)
