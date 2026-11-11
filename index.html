@@ -1985,7 +1985,28 @@ function ocrItems(p) {
   const ang = (p.ocr.r || 0) * Math.PI / 180;
   return p.ocr.words.map(w => ({ str: w.t, eol: !!w.eol, x: w.p[0], y: w.p[1], w: w.w, size: w.s, ang, fam: "Helvetica", bold: false, ocr: true }));
 }
-async function textItems(p) { return (await pdfTextItems(p)).concat(ocrItems(p)); }
+// Text unter Schwärzungen/Abdeckungen gilt als entfernt – nicht markierbar, kopierbar, durchsuchbar oder auslesbar
+async function textItems(p) { return maskCovered((await pdfTextItems(p)).concat(ocrItems(p)), p); }
+function maskCovered(items, p) {
+  const cov = (p.ann || []).filter(a => a.t === "cover" && a.p1 && a.p2).map(a => [Math.min(a.p1[0], a.p2[0]), Math.min(a.p1[1], a.p2[1]), Math.max(a.p1[0], a.p2[0]), Math.max(a.p1[1], a.p2[1])]);
+  if (!cov.length) return items;
+  const hit = (r) => cov.some(c => r[0] < c[2] && r[2] > c[0] && r[1] < c[3] && r[3] > c[1]);
+  const inside = (x, y) => cov.some(c => x >= c[0] - 0.3 && x <= c[2] + 0.3 && y >= c[1] - 0.3 && y <= c[3] + 0.3);
+  const out = [];
+  for (const it of items) {
+    const L = it.str ? it.str.length : 0;
+    if (!L || !hit(itemRect(it, 0, L))) { out.push(it); continue; }
+    const keep = []; for (let k = 0; k < L; k++) { const r = itemRect(it, k, k + 1); keep.push(!inside((r[0] + r[2]) / 2, (r[1] + r[3]) / 2)); }
+    const c = Math.cos(it.ang || 0), sn = Math.sin(it.ang || 0); let k = 0, any = false;
+    while (k < L) {
+      if (!keep[k]) { k++; continue; }
+      let e = k; while (e < L && keep[e]) e++;
+      const off = it.w * k / L; out.push(Object.assign({}, it, { str: it.str.slice(k, e), x: it.x + c * off, y: it.y + sn * off, w: it.w * (e - k) / L, eol: e === L ? it.eol : false })); any = true; k = e;
+    }
+    if (it.eol && (!any || !keep[L - 1])) out.push(Object.assign({}, it, { str: "", w: 0, eol: true }));
+  }
+  return out;
+}
 async function pdfTextItems(p) {
   const key = p.src + ":" + p.idx;
   if (textCache.has(key)) return textCache.get(key);
@@ -3875,7 +3896,7 @@ function installHint() {
   </dl>
   <p class="hint" id="offSt" style="margin:0"></p><div class="row" style="flex-wrap:wrap"><button id="offGo-bb" hidden>Bausteine laden (ca. 21 MB)</button><button id="offGo-fonts" hidden>Schriften laden (ca. 9 MB)</button></div>
   <p class="hint" style="margin:0">Was der Webhoster (z. B. GitHub) dabei sieht: wie bei jeder Webseite deine IP-Adresse, die Uhrzeit und den Gerätetyp – nie den Inhalt deiner Dokumente.</p>`;/*/NET*/
-const APP_VERSION = "2.8 · 11.11.2026";
+const APP_VERSION = "2.9 · 11.11.2026";
 /* Offline-Vorrat (nur GitHub-Pages-Fassung): alle Schriften und die Texterkennung gleich nach dem ersten Öffnen speichern */
 const OFFLINE = /*OFFLINE*/{"v": "pw-assets-1", "files": ["fonts/Caladea-Bold.ttf", "fonts/Caladea-BoldItalic.ttf", "fonts/Caladea-Italic.ttf", "fonts/Caladea-Regular.ttf", "fonts/Carlito-Bold.ttf", "fonts/Carlito-BoldItalic.ttf", "fonts/Carlito-Italic.ttf", "fonts/Carlito-Regular.ttf", "fonts/Caveat-Bold.ttf", "fonts/Caveat-Regular.ttf", "fonts/DejaVuSans-Bold.ttf", "fonts/DejaVuSans-BoldItalic.ttf", "fonts/DejaVuSans-Italic.ttf", "fonts/DejaVuSans-Regular.ttf", "fonts/EBGaramond-Bold.ttf", "fonts/EBGaramond-BoldItalic.ttf", "fonts/EBGaramond-Italic.ttf", "fonts/EBGaramond-Regular.ttf", "fonts/Inter-Bold.ttf", "fonts/Inter-BoldItalic.ttf", "fonts/Inter-Italic.ttf", "fonts/Inter-Regular.ttf", "fonts/LatinModern-Bold.ttf", "fonts/LatinModern-BoldItalic.ttf", "fonts/LatinModern-Italic.ttf", "fonts/LatinModern-Regular.ttf", "fonts/Lato-Bold.ttf", "fonts/Lato-BoldItalic.ttf", "fonts/Lato-Italic.ttf", "fonts/Lato-Regular.ttf", "fonts/LiberationMono-Bold.ttf", "fonts/LiberationMono-BoldItalic.ttf", "fonts/LiberationMono-Italic.ttf", "fonts/LiberationMono-Regular.ttf", "fonts/LiberationSans-Bold.ttf", "fonts/LiberationSans-BoldItalic.ttf", "fonts/LiberationSans-Italic.ttf", "fonts/LiberationSans-Regular.ttf", "fonts/LiberationSerif-Bold.ttf", "fonts/LiberationSerif-BoldItalic.ttf", "fonts/LiberationSerif-Italic.ttf", "fonts/LiberationSerif-Regular.ttf", "fonts/Merriweather-Bold.ttf", "fonts/Merriweather-BoldItalic.ttf", "fonts/Merriweather-Italic.ttf", "fonts/Merriweather-Regular.ttf", "fonts/Montserrat-Bold.ttf", "fonts/Montserrat-BoldItalic.ttf", "fonts/Montserrat-Italic.ttf", "fonts/Montserrat-Regular.ttf", "fonts/NotoSans-Bold.ttf", "fonts/NotoSans-BoldItalic.ttf", "fonts/NotoSans-Italic.ttf", "fonts/NotoSans-Regular.ttf", "fonts/NotoSerif-Bold.ttf", "fonts/NotoSerif-BoldItalic.ttf", "fonts/NotoSerif-Italic.ttf", "fonts/NotoSerif-Regular.ttf", "fonts/OpenSans-Bold.ttf", "fonts/OpenSans-BoldItalic.ttf", "fonts/OpenSans-Italic.ttf", "fonts/OpenSans-Regular.ttf", "fonts/Poppins-Bold.ttf", "fonts/Poppins-BoldItalic.ttf", "fonts/Poppins-Italic.ttf", "fonts/Poppins-Regular.ttf", "fonts/Roboto-Bold.ttf", "fonts/Roboto-BoldItalic.ttf", "fonts/Roboto-Italic.ttf", "fonts/Roboto-Regular.ttf", "fonts/SourceSans3-Bold.ttf", "fonts/SourceSans3-BoldItalic.ttf", "fonts/SourceSans3-Italic.ttf", "fonts/SourceSans3-Regular.ttf", "lib/mammoth.browser.min.js", "lib/tesseract.min.js", "ocr/lang/deu.traineddata.b64.txt", "ocr/lang/eng.traineddata.b64.txt", "ocr/tesseract-core-lstm.wasm.js", "ocr/tesseract-core-relaxedsimd-lstm.wasm.js", "ocr/tesseract-core-simd-lstm.wasm.js", "ocr/worker-wrap.js", "ocr/worker.min.js"]}/*/OFFLINE*/;
 // Gruppen: "bb" = Bausteine (Texterkennung, Word-Import), "fonts" = Schriften
